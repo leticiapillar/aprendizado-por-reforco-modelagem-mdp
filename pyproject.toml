@@ -1,0 +1,16 @@
+[project]
+name = "floodguard"
+version = "0.1.0"
+description = "FloodGuard: ambiente Gymnasium de contencao de enchente e resgate de animais (RL)"
+requires-python = ">=3.10,<3.13"
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+include = ["floodguard*"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

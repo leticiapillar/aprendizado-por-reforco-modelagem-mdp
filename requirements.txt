@@ -1,0 +1,12 @@
+# Requer Python >=3.10,<3.13 (stable-baselines3/torch ainda nao suportam
+# versoes mais novas do Python de forma estavel). Ver README.md > Setup.
+
+gymnasium>=0.29,<1.1
+stable-baselines3[extra]>=2.3,<3.0
+optuna>=3.6,<5.0
+numpy>=1.26,<2.0
+matplotlib>=3.8
+pygame>=2.5
+tensorboard>=2.16
+pytest>=8.0
+jupyter>=1.0

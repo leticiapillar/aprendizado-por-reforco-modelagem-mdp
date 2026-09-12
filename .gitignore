@@ -1,0 +1,23 @@
+# Ambiente virtual
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Artefatos pesados de treino (nao versionar; regenerar via experiments/)
+results/models/*
+!results/models/.gitkeep
+results/logs/*
+!results/logs/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Optuna / SQLite locais
+*.db
+*.db-journal
+
+# SO / editor
+.DS_Store
