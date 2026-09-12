@@ -2,10 +2,6 @@
 
 **Proposta de trabalho para validação — Aprendizado por Reforço / Modelagem de MDPs**
 
-> Esta é uma proposta **alternativa** ao EcoDelivery (ver `proposta-validacao.md` e
-> `proposta-validacao-simplificada.md`), apresentada ao professor para que ele possa
-> escolher/validar qual dos dois cenários seguirá para implementação.
-
 ## 1. Contexto e motivação
 
 O trabalho propõe modelar e implementar, como ambiente Gymnasium, o problema de um
@@ -64,8 +60,7 @@ Espaço discreto com 6 ações:
 
 Resgate de animal (quando o robô ocupa a célula do animal) e entrega na zona segura
 (quando o robô, carregando um animal, ocupa a célula da zona segura) ocorrem
-automaticamente, sem exigir ação dedicada — mantendo o espaço de ação enxuto, como
-no EcoDelivery.
+automaticamente, sem exigir ação dedicada, mantendo o espaço de ação enxuto.
 
 ### Transição (P)
 
@@ -84,8 +79,7 @@ no EcoDelivery.
   fortemente a propagação futura da água para ela) e consome 1 kit de barreira do
   robô (recurso finito por episódio).
 - Se a célula onde está um animal ainda não resgatado se torna água profunda, o
-  animal é considerado **perdido** (análogo ao deadline expirado de um pacote no
-  EcoDelivery).
+  animal é considerado **perdido**.
 - Permanecer sobre a base (ação `esperar/carregar`) recupera bateria a uma taxa fixa
   por step.
 
@@ -134,8 +128,8 @@ Renderização via matplotlib (e possivelmente pygame para uma versão animada):
 
 ## 5. Algoritmos propostos (stable-baselines3)
 
-Mantém-se a mesma proposta do EcoDelivery: espaço de ação discreto, comparando três
-algoritmos com paradigmas distintos:
+Como o espaço de ação é discreto, propõe-se comparar três algoritmos com
+paradigmas distintos, permitindo uma discussão rica no relatório:
 
 | Algoritmo | Paradigma | Justificativa |
 |---|---|---|
@@ -147,21 +141,15 @@ Os hiperparâmetros de cada algoritmo serão otimizados (proposta: busca via Opt
 reportando não apenas a melhor configuração, mas também as demais configurações
 testadas.
 
-## 6. Comparação com o EcoDelivery
+## 6. Complexidade do cenário
 
-| Aspecto | EcoDelivery (simplificado) | FloodGuard |
-|---|---|---|
-| Dinâmica do ambiente | Congestionamento vai e volta (reversível) | Água avança e é (majoritariamente) irreversível — pressão temporal crescente |
-| Estrutura de decisão | Coleta → entrega de 1 pacote | Multi-objetivo: proteger (barreiras) vs. resgatar (animais), competindo por tempo/bateria |
-| Espaço de ação | 5 ações | 6 ações (+ instalar barreira) |
-| Complexidade do estado | Posição + bateria + pacote + congestionamento | Posição + bateria + mapa de inundação + barreiras + múltiplos animais |
-| Apelo/tema | Logística urbana | Tema atual e local (enchentes no RS) |
-
-O FloodGuard é mais rico em termos de decisão estratégica (trade-off explícito
-entre prevenção e resgate), mas também mais complexo em termos de espaço de
-estados — pode exigir uma versão simplificada inicial (grid menor, menos animais,
-sem múltiplos níveis de água) caso o treinamento se mostre muito lento, seguindo o
-mesmo padrão de simplificação já adotado no EcoDelivery.
+O FloodGuard é rico em termos de decisão estratégica (trade-off explícito entre
+prevenção — instalar barreiras — e resgate, já que ambas competem pelo mesmo
+orçamento de tempo/bateria), mas também é complexo em termos de espaço de
+estados (posição, bateria, mapa de inundação, barreiras e múltiplos animais). Por
+isso pode exigir uma versão simplificada inicial (grid menor, menos animais, sem
+múltiplos níveis de água) caso o treinamento se mostre muito lento — ver
+`proposta-validacao-enchente-simplificada.md`.
 
 ## 7. Próximos passos após validação
 
@@ -173,8 +161,6 @@ mesmo padrão de simplificação já adotado no EcoDelivery.
 
 ## 8. Pontos em aberto para discussão com o professor
 
-- Escolha entre este cenário (FloodGuard) e o EcoDelivery como escopo definitivo do
-  trabalho
 - Validação do tamanho do grid, número de animais e regras de propagação da água
   (probabilidades `p` e `q`)
 - Validação da mecânica de barreiras (kits limitados vs. custo de bateria apenas,

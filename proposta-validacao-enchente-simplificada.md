@@ -7,9 +7,7 @@
 > de 3 animais em um grid 8×8), mantendo as demais componentes do MDP (bateria,
 > barreiras, avanço estocástico da água). O objetivo é oferecer uma alternativa de
 > menor complexidade, seja como escopo definitivo, seja como uma primeira versão
-> (MVP) a ser expandida para múltiplos animais caso o tempo do trabalho permita —
-> no mesmo espírito da simplificação já feita para o EcoDelivery (ver
-> `proposta-validacao-simplificada.md`).
+> (MVP) a ser expandida para múltiplos animais caso o tempo do trabalho permita.
 
 ## 1. Contexto e motivação
 
@@ -137,8 +135,8 @@ configurações testadas.
   acelerar o treinamento e facilitar a depuração do ambiente e da dinâmica de
   propagação da água.
 - Mantém todos os elementos centrais do MDP (navegação, bateria, barreiras, avanço
-  estocástico da água), preservando o trade-off proteção-vs-resgate que é o
-  diferencial deste cenário em relação ao EcoDelivery.
+  estocástico da água), preservando o trade-off central entre proteção e resgate
+  que justifica o uso de RL neste cenário.
 - Serve como base sólida para, se houver tempo, evoluir para a versão com múltiplos
   animais (K > 1) descrita na proposta original, bastando estender o espaço de
   estados e a lógica de recompensa.
@@ -153,8 +151,6 @@ configurações testadas.
 
 ## 8. Pontos em aberto para discussão com o professor
 
-- Escolha entre este cenário (FloodGuard) e o EcoDelivery como escopo definitivo do
-  trabalho
 - Validação do escopo simplificado (1 animal, grid 6×6) como suficiente para os
   objetivos da disciplina, versus a versão com múltiplos animais
 - Validação das regras de propagação da água (probabilidades `p` e `q`) e da
