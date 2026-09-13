@@ -89,6 +89,15 @@ source .venv/bin/activate
 python experiments/render_example_episode.py
 ```
 
+Episódio de exemplo (política heurística fixa, só para ilustrar as
+mecânicas do ambiente — não é um agente treinado):
+
+![Episódio de exemplo do FloodGuardEnv: o robô instala uma barreira, resgata o animal e o entrega na zona segura enquanto a água avança](results/figures/example_episode.gif)
+
+| Estado inicial | Barreira instalada | Animal resgatado | Entrega concluída |
+|---|---|---|---|
+| ![Estado inicial](results/figures/example_episode_initial.png) | ![Barreira instalada](results/figures/example_episode_barrier.png) | ![Animal resgatado](results/figures/example_episode_rescue.png) | ![Entrega concluída](results/figures/example_episode_final.png) |
+
 ## Reprodutibilidade
 
 Use `floodguard.utils.set_global_seed(seed)` no início de qualquer script de
