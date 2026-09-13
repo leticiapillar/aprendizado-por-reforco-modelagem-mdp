@@ -11,9 +11,9 @@ do trabalho por etapas.
 ```
 floodguard/
   envs/flood_guard_env.py   # MDP / ambiente Gymnasium (Etapa 1 — implementado)
-  rendering/                # visualização do ambiente (Etapa 2 — pendente)
+  rendering/renderer.py     # visualização via matplotlib (Etapa 2 — implementado)
   utils/seeding.py          # utilitário de reprodutibilidade
-experiments/                # scripts de treino e otimização de hiperparâmetros
+experiments/                # scripts de treino, renderização de exemplo e otimização de hiperparâmetros
 notebooks/                  # relatório final em literate programming (Etapa 7)
 results/
   models/                   # checkpoints treinados (não versionado)
@@ -72,7 +72,22 @@ que a seed global é determinística. `tests/test_env.py` (Etapa 1) cobre a
 dinâmica do MDP em si: reset determinístico, custos de movimento, bloqueio
 por água profunda/borda, barreiras, resgate/entrega, perda do animal,
 bateria zerada, truncamento por steps e conformidade com a API do
-Gymnasium (`check_env`).
+Gymnasium (`check_env`). `tests/test_rendering.py` (Etapa 2) cobre a
+renderização: formato/dtype do frame RGB, os diferentes status do animal e
+comportamento de `render()` sem `render_mode`.
+
+## Visualização
+
+`env.render()` (com `FloodGuardEnv(render_mode="rgb_array")`) retorna um
+frame RGB do estado atual do grid — robô, animal, base, zona segura, água
+por nível de inundação e barreiras instaladas, no estilo do mockup em
+`assets/floodguard_mockup_simplificado.png`. Para gerar um episódio de
+exemplo (imagens + GIF) em `results/figures/`:
+
+```bash
+source .venv/bin/activate
+python experiments/render_example_episode.py
+```
 
 ## Reprodutibilidade
 

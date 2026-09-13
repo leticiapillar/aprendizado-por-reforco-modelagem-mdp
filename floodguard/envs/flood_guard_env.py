@@ -118,6 +118,7 @@ class FloodGuardEnv(gym.Env):
         self._steps = 0
         self.battery = self.max_battery
         self.robot_pos = np.array(self.robot_base, dtype=np.int32)
+        self._facing = (0, 1)
         self.kits_remaining = self.initial_barrier_kits
         self.flood = np.full((grid_size, grid_size), self.DRY, dtype=np.int32)
         self.barriers = np.zeros((grid_size, grid_size), dtype=np.int32)
@@ -134,6 +135,7 @@ class FloodGuardEnv(gym.Env):
         self._steps = 0
         self.battery = self.max_battery
         self.robot_pos = np.array(self.robot_base, dtype=np.int32)
+        self._facing = (0, 1)  # apenas para renderizacao (Etapa 2); nao faz parte do estado do MDP
         self.kits_remaining = self.initial_barrier_kits
         self.barriers = np.zeros((self.grid_size, self.grid_size), dtype=np.int32)
         self.animal_status = self.AWAITING
@@ -189,7 +191,17 @@ class FloodGuardEnv(gym.Env):
         return self._get_obs(), float(reward), bool(terminated), bool(truncated), self._get_info()
 
     def render(self):
-        raise NotImplementedError("Implementado na Etapa 2")
+        if self.render_mode is None:
+            gym.logger.warn(
+                "Chame gym.make(..., render_mode='rgb_array') (ou instancie "
+                "FloodGuardEnv(render_mode='rgb_array')) antes de chamar render()."
+            )
+            return None
+        if self.render_mode == "rgb_array":
+            from floodguard.rendering.renderer import render_frame
+
+            return render_frame(self)
+        raise NotImplementedError(f"render_mode={self.render_mode!r} nao suportado")
 
     # ------------------------------------------------------------------
     # Dinamica interna
@@ -198,6 +210,7 @@ class FloodGuardEnv(gym.Env):
     def _handle_move(self, action: int) -> float:
         dr, dc = self._ACTION_DELTAS[action]
         r, c = int(self.robot_pos[0]) + dr, int(self.robot_pos[1]) + dc
+        self._facing = (dr, dc)
 
         if not (0 <= r < self.grid_size and 0 <= c < self.grid_size):
             return 0.0  # bateu na borda do grid: nao se move, sem custo extra
