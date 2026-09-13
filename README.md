@@ -10,8 +10,8 @@ do trabalho por etapas.
 
 ```
 floodguard/
-  envs/flood_guard_env.py   # MDP / ambiente Gymnasium (Etapa 1)
-  rendering/                # visualização do ambiente (Etapa 2)
+  envs/flood_guard_env.py   # MDP / ambiente Gymnasium (Etapa 1 — implementado)
+  rendering/                # visualização do ambiente (Etapa 2 — pendente)
   utils/seeding.py          # utilitário de reprodutibilidade
 experiments/                # scripts de treino e otimização de hiperparâmetros
 notebooks/                  # relatório final em literate programming (Etapa 7)
@@ -66,10 +66,13 @@ source .venv/bin/activate
 pytest
 ```
 
-Na Etapa 0 (setup), `tests/test_setup.py` apenas confirma que as
-dependências estão instaladas, que o ambiente `FloodGuard-v0` está
-registrado no Gymnasium e que a seed global é determinística. Os testes da
-dinâmica do MDP em si (`tests/test_env.py`) são adicionados na Etapa 1.
+`tests/test_setup.py` (Etapa 0) confirma que as dependências estão
+instaladas, que o ambiente `FloodGuard-v0` está registrado no Gymnasium e
+que a seed global é determinística. `tests/test_env.py` (Etapa 1) cobre a
+dinâmica do MDP em si: reset determinístico, custos de movimento, bloqueio
+por água profunda/borda, barreiras, resgate/entrega, perda do animal,
+bateria zerada, truncamento por steps e conformidade com a API do
+Gymnasium (`check_env`).
 
 ## Reprodutibilidade
 
