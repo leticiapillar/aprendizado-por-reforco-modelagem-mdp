@@ -14,8 +14,10 @@ floodguard/
   rendering/renderer.py     # visualização via matplotlib (Etapa 2 — implementado)
   utils/seeding.py          # utilitário de reprodutibilidade
 experiments/                # scripts de treino, renderização de exemplo e otimização de hiperparâmetros
+  random_baseline.py        # baseline aleatório / sanity check do ambiente (Etapa 3)
 notebooks/                  # relatório final em literate programming (Etapa 7)
 results/
+  baselines/                # métricas do agente aleatório (Etapa 3)
   models/                   # checkpoints treinados (não versionado)
   logs/                     # logs de treino / tensorboard / optuna (não versionado)
   figures/                  # gráficos e imagens usados no relatório (versionado)
@@ -97,6 +99,48 @@ mecânicas do ambiente — não é um agente treinado):
 | Estado inicial | Barreira instalada | Animal resgatado | Entrega concluída |
 |---|---|---|---|
 | ![Estado inicial](results/figures/example_episode_initial.png) | ![Barreira instalada](results/figures/example_episode_barrier.png) | ![Animal resgatado](results/figures/example_episode_rescue.png) | ![Entrega concluída](results/figures/example_episode_final.png) |
+
+## Baseline aleatório / sanity check
+
+A Etapa 3 roda uma política uniformemente aleatória para verificar se o
+ambiente está calibrado antes dos treinos com DQN, PPO e A2C. O script salva
+métricas por episódio, resumo agregado e um relatório curto:
+
+```bash
+source .venv/bin/activate
+python experiments/random_baseline.py --episodes 1000 --seed 42
+```
+
+Arquivos gerados em `results/baselines/`:
+
+- `random_baseline_episodes.csv` — métricas por episódio.
+- `random_baseline_summary.json` — resumo agregado para reuso em scripts.
+- `random_baseline_report.md` — leitura do sanity check e métricas
+  fixadas para as próximas etapas.
+
+Nesta calibração, `flood_advance_prob` foi reduzido para `0.05` e
+`flood_deepen_prob` permanece em `0.10`, deixando a taxa de sucesso aleatória
+baixa, mas não nula, sem tornar a perda do animal irrelevante.
+
+### Métricas da Etapa 3
+
+O ambiente inclui campos extras em `info` para tornar a avaliação dos
+episódios auditável. Essas métricas não alteram a dinâmica do MDP; apenas
+registram o que aconteceu durante o episódio.
+
+| Métrica | Significado |
+|---|---|
+| `battery_spent` | Energia acumulada gasta em movimentos e instalação de barreiras. É diferente da bateria final, porque o robô pode recarregar na base. |
+| `termination_reason` | Motivo do fim do episódio: `success`, `animal_lost`, `battery_depleted`, `max_steps` ou `running` enquanto o episódio ainda não terminou. |
+| `barriers_installed` | Número de barreiras realmente instaladas no episódio. Ações inválidas de instalação não entram nessa contagem. |
+| `effective_barriers_installed` | Número de barreiras instaladas em células com risco imediato: célula rasa ou célula seca adjacente à água. |
+| `pickup_step` | Step em que o robô pegou o animal pela primeira vez. Fica `None` se o animal nunca foi coletado. |
+| `delivery_step` | Step em que o robô entregou o animal na zona segura. Fica `None` se não houve sucesso. |
+
+No resumo agregado do baseline, esses campos viram métricas como
+`battery_spent_mean`, `battery_depleted_rate`,
+`barriers_installed_mean`, `effective_barriers_installed_mean` e
+`steps_to_success_mean`, usadas depois para comparar DQN, PPO e A2C.
 
 ## Reprodutibilidade
 

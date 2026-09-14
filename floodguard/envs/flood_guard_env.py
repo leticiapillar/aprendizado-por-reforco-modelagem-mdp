@@ -61,7 +61,7 @@ class FloodGuardEnv(gym.Env):
         move_cost_shallow: int = 3,
         barrier_install_cost: int = 15,
         charge_rate: int = 20,
-        flood_advance_prob: float = 0.15,
+        flood_advance_prob: float = 0.05,
         flood_deepen_prob: float = 0.10,
         rescue_reward: float = 20.0,
         barrier_effective_reward: float = 5.0,
@@ -124,6 +124,12 @@ class FloodGuardEnv(gym.Env):
         self.barriers = np.zeros((grid_size, grid_size), dtype=np.int32)
         self.animal_status = self.AWAITING
         self.animal_pos = np.array(self.animal_start, dtype=np.int32)
+        self._battery_spent = 0
+        self._barriers_installed = 0
+        self._effective_barriers_installed = 0
+        self._pickup_step: Optional[int] = None
+        self._delivery_step: Optional[int] = None
+        self._last_termination_reason = "running"
 
     # ------------------------------------------------------------------
     # API Gymnasium
@@ -140,6 +146,12 @@ class FloodGuardEnv(gym.Env):
         self.barriers = np.zeros((self.grid_size, self.grid_size), dtype=np.int32)
         self.animal_status = self.AWAITING
         self.animal_pos = np.array(self.animal_start, dtype=np.int32)
+        self._battery_spent = 0
+        self._barriers_installed = 0
+        self._effective_barriers_installed = 0
+        self._pickup_step = None
+        self._delivery_step = None
+        self._last_termination_reason = "running"
 
         self.flood = np.full((self.grid_size, self.grid_size), self.DRY, dtype=np.int32)
         self.flood[self.flood_source] = self.SHALLOW
@@ -167,10 +179,13 @@ class FloodGuardEnv(gym.Env):
         robot_cell = tuple(self.robot_pos.tolist())
         if self.animal_status == self.AWAITING and robot_cell == self.animal_start:
             self.animal_status = self.WITH_ROBOT
+            self._pickup_step = self._steps + 1
         if self.animal_status == self.WITH_ROBOT and robot_cell == self.safe_zone:
             self.animal_status = self.SAVED
+            self._delivery_step = self._steps + 1
             reward += self.rescue_reward
             terminated = True
+            self._last_termination_reason = "success"
 
         if not terminated:
             self._advance_flood()
@@ -180,13 +195,17 @@ class FloodGuardEnv(gym.Env):
                 self.animal_status = self.LOST
                 reward += self.animal_lost_penalty
                 terminated = True
+                self._last_termination_reason = "animal_lost"
 
         if not terminated and self.battery <= 0 and robot_cell != self.robot_base:
             reward += self.battery_depleted_penalty
             terminated = True
+            self._last_termination_reason = "battery_depleted"
 
         self._steps += 1
         truncated = not terminated and self._steps >= self.max_steps
+        if truncated:
+            self._last_termination_reason = "max_steps"
 
         return self._get_obs(), float(reward), bool(terminated), bool(truncated), self._get_info()
 
@@ -220,6 +239,7 @@ class FloodGuardEnv(gym.Env):
         cost = self.move_cost_dry if self.flood[r, c] == self.DRY else self.move_cost_shallow
         self.robot_pos = np.array([r, c], dtype=np.int32)
         self.battery -= cost
+        self._battery_spent += cost
         return 0.0
 
     def _handle_install_barrier(self) -> float:
@@ -243,6 +263,10 @@ class FloodGuardEnv(gym.Env):
         self.barriers[cell] = 1
         self.kits_remaining -= 1
         self.battery -= self.barrier_install_cost
+        self._battery_spent += self.barrier_install_cost
+        self._barriers_installed += 1
+        if effective:
+            self._effective_barriers_installed += 1
         return self.barrier_effective_reward if effective else 0.0
 
     def _handle_wait_charge(self) -> None:
@@ -303,7 +327,13 @@ class FloodGuardEnv(gym.Env):
         return {
             "steps": self._steps,
             "battery": self.battery,
+            "battery_spent": self._battery_spent,
             "kits_remaining": self.kits_remaining,
             "animal_status": self.animal_status,
             "is_success": self.animal_status == self.SAVED,
+            "termination_reason": self._last_termination_reason,
+            "barriers_installed": self._barriers_installed,
+            "effective_barriers_installed": self._effective_barriers_installed,
+            "pickup_step": self._pickup_step,
+            "delivery_step": self._delivery_step,
         }

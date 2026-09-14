@@ -174,6 +174,36 @@ def test_battery_is_clamped_to_max():
     assert env.battery == 100
 
 
+def test_info_tracks_stage3_evaluation_metrics():
+    env = make_env(
+        robot_base=(5, 5),
+        animal_start=(5, 4),
+        safe_zone=(5, 3),
+        flood_advance_prob=0.0,
+        flood_deepen_prob=0.0,
+    )
+    _obs, info = env.reset(seed=0)
+
+    assert info["battery_spent"] == 0
+    assert info["barriers_installed"] == 0
+    assert info["effective_barriers_installed"] == 0
+    assert info["pickup_step"] is None
+    assert info["delivery_step"] is None
+    assert info["termination_reason"] == "running"
+
+    _obs, _reward, terminated, truncated, info = env.step(FloodGuardEnv.LEFT)
+    assert not terminated and not truncated
+    assert info["pickup_step"] == 1
+    assert info["battery_spent"] == env.move_cost_dry
+
+    _obs, _reward, terminated, truncated, info = env.step(FloodGuardEnv.LEFT)
+    assert terminated and not truncated
+    assert info["is_success"] is True
+    assert info["delivery_step"] == 2
+    assert info["termination_reason"] == "success"
+    assert info["battery_spent"] == 2 * env.move_cost_dry
+
+
 # ----------------------------------------------------------------------
 # Barreiras
 # ----------------------------------------------------------------------
