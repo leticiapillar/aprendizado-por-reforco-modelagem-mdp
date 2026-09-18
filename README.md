@@ -15,6 +15,7 @@ floodguard/
   utils/seeding.py          # utilitário de reprodutibilidade
 experiments/                # scripts de treino, renderização de exemplo e otimização de hiperparâmetros
   random_baseline.py        # baseline aleatório / sanity check do ambiente (Etapa 3)
+  train.py                  # treino default DQN/PPO/A2C com stable-baselines3 (Etapa 4)
 notebooks/                  # relatório final em literate programming (Etapa 7)
 results/
   baselines/                # métricas do agente aleatório (Etapa 3)
@@ -141,6 +142,22 @@ No resumo agregado do baseline, esses campos viram métricas como
 `battery_spent_mean`, `battery_depleted_rate`,
 `barriers_installed_mean`, `effective_barriers_installed_mean` e
 `steps_to_success_mean`, usadas depois para comparar DQN, PPO e A2C.
+
+## Etapa 4 - Treino com Stable-Baselines3
+
+A Etapa 4 treina e avalia DQN, PPO e A2C com 500.000 timesteps, seed 42 e
+hiperparâmetros padrão do Stable-Baselines3.
+
+```bash
+source .venv/bin/activate
+python experiments/train.py --algo dqn
+python experiments/train.py --algo ppo
+python experiments/train.py --algo a2c
+```
+
+Os três algoritmos superaram o agente aleatório e a etapa foi validada. A
+metodologia, os resultados e os links para os artefatos estão no
+[relatório consolidado da Etapa 4](results/relatorio_etapa_4.md).
 
 ## Reprodutibilidade
 
