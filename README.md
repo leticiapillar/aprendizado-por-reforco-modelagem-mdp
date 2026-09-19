@@ -17,6 +17,7 @@ experiments/                # scripts de treino, renderização de exemplo e oti
   random_baseline.py        # baseline aleatório / sanity check do ambiente (Etapa 3)
   train.py                  # treino default DQN/PPO/A2C com stable-baselines3 (Etapa 4)
   tune.py                   # busca Optuna de hiperparâmetros (Etapa 5)
+  final_experiments.py      # treino multi-seed e comparação final (Etapa 6)
 notebooks/                  # relatório final em literate programming (Etapa 7)
 results/
   baselines/                # métricas do agente aleatório (Etapa 3)
@@ -182,6 +183,21 @@ Smoke test rapido:
 source .venv/bin/activate
 python experiments/tune.py --algo a2c --n-trials 1 --total-timesteps 32 --eval-episodes 1 --eval-freq 0
 ```
+
+## Etapa 6 - Experimentos finais
+
+A Etapa 6 treina cada algoritmo com a melhor configuracao encontrada na
+Etapa 5. O experimento usa tres sementes de treino, 500.000 passos por modelo
+e 100 episodios de teste com a politica estocastica usada na otimizacao.
+
+```bash
+source .venv/bin/activate
+python experiments/final_experiments.py --stochastic-eval
+```
+
+O script salva os nove modelos finais, os resultados por seed e por episodio,
+as curvas de aprendizado, os graficos comparativos e o
+[relatorio consolidado da Etapa 6](results/relatorio_etapa_6.md).
 
 ## Reprodutibilidade
 

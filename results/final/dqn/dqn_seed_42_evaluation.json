@@ -1,0 +1,48 @@
+{
+  "animal_lost_rate": 0.06,
+  "animal_status_counts": {
+    "awaiting": 3,
+    "lost": 6,
+    "saved": 45,
+    "with_robot": 46
+  },
+  "barriers_installed_mean": 1.14,
+  "battery_depleted_rate": 0.0,
+  "battery_spent_mean": 34.1,
+  "effective_barriers_installed_mean": 0.18,
+  "env_params": {
+    "animal_lost_penalty": -20.0,
+    "barrier_effective_reward": 5.0,
+    "barrier_install_cost": 15,
+    "battery_depleted_penalty": -30.0,
+    "charge_rate": 20,
+    "flood_advance_prob": 0.05,
+    "flood_deepen_prob": 0.1,
+    "grid_size": 6,
+    "initial_barrier_kits": 2,
+    "max_battery": 100,
+    "max_steps": 100,
+    "move_cost_dry": 1,
+    "move_cost_shallow": 3,
+    "rescue_reward": 20.0,
+    "step_penalty": -1.0
+  },
+  "episodes": 100,
+  "final_battery_mean": 68.58,
+  "pickup_rate": 0.91,
+  "return_max": 3.0,
+  "return_mean": -66.12,
+  "return_min": -112.0,
+  "return_std": 38.52462940389006,
+  "seed": 50000,
+  "steps_mean": 74.82,
+  "steps_to_pickup_mean": 6.8901098901098905,
+  "steps_to_success_mean": 46.62222222222222,
+  "success_rate": 0.45,
+  "termination_counts": {
+    "animal_lost": 6,
+    "max_steps": 49,
+    "success": 45
+  },
+  "truncated_rate": 0.49
+}

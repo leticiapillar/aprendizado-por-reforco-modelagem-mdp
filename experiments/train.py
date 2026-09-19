@@ -267,8 +267,9 @@ def evaluate_model(
     episodes: int,
     seed: int,
     env_kwargs: dict[str, Any] | None = None,
+    deterministic: bool = False,
 ) -> tuple[list[EpisodeMetrics], dict[str, Any]]:
-    """Avalia a politica treinada de forma deterministica em episodios novos."""
+    """Avalia a politica treinada em episodios novos."""
     if episodes <= 0:
         raise ValueError("episodes must be positive")
 
@@ -286,10 +287,9 @@ def evaluate_model(
             info: dict[str, Any] = {}
 
             while not (terminated or truncated):
-                # A enchente pode bloquear a acao modal da politica. Amostrar
-                # a distribuicao aprendida permite reagir a esses bloqueios e
-                # avalia a politica estocastica que foi otimizada no treino.
-                action, _ = model.predict(obs, deterministic=False)
+                # A Etapa 4 usa a politica estocastica. A Etapa 6 ativa o modo
+                # deterministico para comparar todos os modelos da mesma forma.
+                action, _ = model.predict(obs, deterministic=deterministic)
                 obs, reward, terminated, truncated, info = env.step(
                     _as_discrete_action(action)
                 )
