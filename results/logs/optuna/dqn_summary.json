@@ -1,0 +1,48 @@
+{
+  "algo": "dqn",
+  "best_trial": {
+    "metrics": {
+      "animal_lost_rate": 0.0,
+      "battery_depleted_rate": 0.0,
+      "battery_spent_mean": 36.06666666666667,
+      "effective_barriers_installed_mean": 0.16666666666666666,
+      "pickup_rate": 0.9333333333333333,
+      "return_mean": -59.166666666666664,
+      "return_std": 38.6541547334943,
+      "steps_mean": 70.66666666666667,
+      "steps_to_success_mean": 45.0,
+      "success_rate": 0.5333333333333333,
+      "truncated_rate": 0.4666666666666667
+    },
+    "number": 15,
+    "params": {
+      "batch_size": 256,
+      "buffer_size": 50000,
+      "exploration_final_eps": 0.11829027147571486,
+      "exploration_fraction": 0.36336360080791485,
+      "gamma": 0.9855189279046139,
+      "gradient_steps": 2,
+      "learning_rate": 2.4164446480379186e-05,
+      "learning_starts": 1000,
+      "target_update_interval": 250,
+      "train_freq": 4
+    },
+    "value": -59.166666666666664
+  },
+  "completed_trials": 9,
+  "env_kwargs": {},
+  "eval_episodes": 30,
+  "failed_trials": 0,
+  "paths": {
+    "best_config": "results/logs/optuna/dqn_best_params.json",
+    "optimization_history": "results/figures/optuna_dqn_history.png",
+    "param_importance": "results/figures/optuna_dqn_param_importance.png",
+    "storage": "results/logs/optuna/optuna_dqn.db",
+    "trials_csv": "results/logs/optuna/dqn_trials.csv"
+  },
+  "pruned_trials": 21,
+  "storage": "results/logs/optuna/optuna_dqn.db",
+  "study_name": "floodguard_stage5_dqn",
+  "total_timesteps_per_trial": 100000,
+  "total_trials": 30
+}

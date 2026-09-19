@@ -16,6 +16,7 @@ floodguard/
 experiments/                # scripts de treino, renderização de exemplo e otimização de hiperparâmetros
   random_baseline.py        # baseline aleatório / sanity check do ambiente (Etapa 3)
   train.py                  # treino default DQN/PPO/A2C com stable-baselines3 (Etapa 4)
+  tune.py                   # busca Optuna de hiperparâmetros (Etapa 5)
 notebooks/                  # relatório final em literate programming (Etapa 7)
 results/
   baselines/                # métricas do agente aleatório (Etapa 3)
@@ -158,6 +159,29 @@ python experiments/train.py --algo a2c
 Os três algoritmos superaram o agente aleatório e a etapa foi validada. A
 metodologia, os resultados e os links para os artefatos estão no
 [relatório consolidado da Etapa 4](results/relatorio_etapa_4.md).
+
+## Etapa 5 - Otimizacao com Optuna
+
+A Etapa 5 busca hiperparametros melhores para DQN, PPO e A2C. Cada execucao
+salva o banco SQLite do Optuna, um CSV com todos os trials, o JSON com a melhor
+configuracao, graficos em `results/figures/` e atualiza o
+[relatorio consolidado da Etapa 5](results/relatorio_etapa_5.md).
+
+Busca completa sugerida:
+
+```bash
+source .venv/bin/activate
+python experiments/tune.py --algo dqn --n-trials 20 --total-timesteps 100000 --eval-episodes 30
+python experiments/tune.py --algo ppo --n-trials 20 --total-timesteps 100000 --eval-episodes 30
+python experiments/tune.py --algo a2c --n-trials 20 --total-timesteps 100000 --eval-episodes 30
+```
+
+Smoke test rapido:
+
+```bash
+source .venv/bin/activate
+python experiments/tune.py --algo a2c --n-trials 1 --total-timesteps 32 --eval-episodes 1 --eval-freq 0
+```
 
 ## Reprodutibilidade
 
