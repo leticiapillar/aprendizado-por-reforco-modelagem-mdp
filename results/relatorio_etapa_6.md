@@ -1,6 +1,6 @@
 # FloodGuard - Relatorio da Etapa 6
 
-Gerado em `2026-09-20 16:32:22` por `experiments/final_experiments.py`.
+Gerado em `2026-09-20 19:25:04` por `experiments/final_experiments.py`.
 
 ## Resumo
 
@@ -26,23 +26,23 @@ Media entre seeds; o termo apos `+/-` e o desvio padrao entre os modelos treinad
 | DQN (Default SB3) | 5.00 +/- 0.00 | 100.00% +/- 0.00% | 0.00% +/- 0.00% | 0.00% +/- 0.00% | 15.00 | 15.00 |
 | PPO (Default SB3) | -15.86 +/- 44.88 | 79.80% +/- 44.61% | 11.00% +/- 24.60% | 9.20% +/- 20.02% | 13.05 | 15.55 |
 | A2C (Otimizado (Optuna)) | -4.12 +/- 19.22 | 97.40% +/- 4.72% | 0.00% +/- 0.00% | 2.60% +/- 4.72% | 15.05 | 22.18 |
-| DQN (Otimizado (Optuna)) | 11.82 +/- 0.83 | 99.20% +/- 0.84% | 0.00% +/- 0.00% | 0.80% +/- 0.84% | 45.14 | 17.09 |
-| PPO (Otimizado (Optuna)) | 1.42 +/- 6.79 | 97.60% +/- 4.28% | 0.00% +/- 0.00% | 2.40% +/- 4.28% | 15.27 | 16.25 |
+| DQN (Otimizado (Optuna)) | 8.96 +/- 3.19 | 99.20% +/- 0.45% | 0.00% +/- 0.00% | 0.80% +/- 0.45% | 34.21 | 16.34 |
+| PPO (Otimizado (Optuna)) | 4.51 +/- 0.56 | 99.60% +/- 0.55% | 0.00% +/- 0.00% | 0.40% +/- 0.55% | 15.07 | 15.07 |
 
 ## Leitura dos resultados
 
-- **Ranking por retorno (deterministica, otimizado):** DQN (11.82) > PPO (1.42) > A2C (-4.12); agente aleatorio: -97.42.
-- **DQN:** sucesso 99.20% (+/- 0.84%), acima do baseline aleatorio em retorno.
-- **PPO:** sucesso 97.60% (+/- 4.28%), acima do baseline aleatorio em retorno.
+- **Ranking por retorno (deterministica, otimizado):** DQN (8.96) > PPO (4.51) > A2C (-4.12); agente aleatorio: -97.42.
+- **DQN:** sucesso 99.20% (+/- 0.45%), acima do baseline aleatorio em retorno.
+- **PPO:** sucesso 99.60% (+/- 0.55%), acima do baseline aleatorio em retorno.
 - **A2C:** sucesso 97.40% (+/- 4.72%), acima do baseline aleatorio em retorno.
-- **DQN: a otimizacao melhorou** frente ao default do SB3 (retorno 5.00 -> 11.82).
-- **PPO: a otimizacao melhorou** frente ao default do SB3 (retorno -15.86 -> 1.42).
+- **DQN: a otimizacao melhorou** frente ao default do SB3 (retorno 5.00 -> 8.96).
+- **PPO: a otimizacao melhorou** frente ao default do SB3 (retorno -15.86 -> 4.51).
 - **A2C: a otimizacao nao melhorou** frente ao default do SB3 (retorno 4.79 -> -4.12).
-- **DQN:** 1.20% dos episodios deterministicos travaram (>= 10 passos sem efeito); sucesso estocastico 98.60% contra 99.20% deterministico.
-- **PPO:** 5.00% dos episodios deterministicos travaram (>= 10 passos sem efeito); sucesso estocastico 99.60% contra 97.60% deterministico.
+- **DQN:** 1.00% dos episodios deterministicos travaram (>= 10 passos sem efeito); sucesso estocastico 99.80% contra 99.20% deterministico.
+- **PPO:** 0.60% dos episodios deterministicos travaram (>= 10 passos sem efeito); sucesso estocastico 100.00% contra 99.60% deterministico.
 - **A2C:** 19.60% dos episodios deterministicos travaram (>= 10 passos sem efeito); sucesso estocastico 97.80% contra 97.40% deterministico.
 - **Referencia do MDP:** resgate direto (15 passos) rende 5.00; instalar 2 barreiras efetivas no caminho rende ate 13.00 (+recompensa de barreira, -1 passo cada). Retornos acima do resgate direto indicam uso de barreiras.
-- Barreiras efetivas por episodio (deterministica): DQN 1.95, PPO 0.01, A2C 0.00; aleatorio 0.09.
+- Barreiras efetivas por episodio (deterministica): DQN 1.23, PPO 0.00, A2C 0.00; aleatorio 0.09.
 
 ## Avaliacao estocastica (secundaria)
 
@@ -55,8 +55,8 @@ PPO/A2C amostram da distribuicao de acoes; o DQN usa epsilon-greedy com o epsilo
 | DQN (Default SB3) | 4.21 +/- 0.13 | 100.00% +/- 0.00% | 0.00% +/- 0.00% | 0.00% +/- 0.00% | 17.38 | 15.79 |
 | PPO (Default SB3) | -15.56 +/- 45.50 | 80.20% +/- 44.27% | 8.40% +/- 18.78% | 11.40% +/- 25.49% | 13.39 | 26.18 |
 | A2C (Otimizado (Optuna)) | -3.90 +/- 18.70 | 97.80% +/- 3.83% | 0.00% +/- 0.00% | 2.20% +/- 3.83% | 15.09 | 22.24 |
-| DQN (Otimizado (Optuna)) | 8.39 +/- 0.70 | 98.60% +/- 0.55% | 0.00% +/- 0.00% | 1.40% +/- 0.55% | 44.64 | 18.58 |
-| PPO (Otimizado (Optuna)) | 4.25 +/- 0.85 | 99.60% +/- 0.55% | 0.00% +/- 0.00% | 0.40% +/- 0.55% | 15.23 | 15.34 |
+| DQN (Otimizado (Optuna)) | 4.75 +/- 1.83 | 99.80% +/- 0.45% | 0.00% +/- 0.00% | 0.20% +/- 0.45% | 37.34 | 19.61 |
+| PPO (Otimizado (Optuna)) | 4.90 +/- 0.08 | 100.00% +/- 0.00% | 0.00% +/- 0.00% | 0.00% +/- 0.00% | 15.09 | 15.10 |
 
 ## Diagnostico de travamento (deterministica)
 
@@ -68,8 +68,8 @@ Um passo e "sem efeito" quando robo, bateria, kits e status do animal nao mudam.
 | DQN (Default SB3) | 0.00% | 0.00% |
 | PPO (Default SB3) | 20.45% | 20.40% |
 | A2C (Otimizado (Optuna)) | 16.97% | 19.60% |
-| DQN (Otimizado (Optuna)) | 4.41% | 1.20% |
-| PPO (Otimizado (Optuna)) | 12.33% | 5.00% |
+| DQN (Otimizado (Optuna)) | 4.53% | 1.00% |
+| PPO (Otimizado (Optuna)) | 2.63% | 0.60% |
 
 ## Ablacoes do PPO (protecao vs. resgate)
 
@@ -77,9 +77,9 @@ Investigam por que as barreiras quase nao sao usadas: sem kits de barreira e sem
 
 | Variante | Retorno | Sucesso | Perda do animal | Truncamento | Barreiras efetivas |
 |---|---:|---:|---:|---:|---:|
-| PPO otimizado (referencia) | 1.42 +/- 6.79 | 97.60% +/- 4.28% | 0.00% +/- 0.00% | 2.40% +/- 4.28% | 0.01 |
-| PPO otimizado sem barreiras | -13.09 +/- 39.65 | 83.00% +/- 38.01% | 5.40% +/- 12.07% | 11.60% +/- 25.94% | 0.00 |
-| PPO otimizado sem reward shaping | -33.92 +/- 50.62 | 58.40% +/- 53.36% | 6.80% +/- 10.43% | 34.80% +/- 46.88% | 1.40 |
+| PPO otimizado (referencia) | 4.51 +/- 0.56 | 99.60% +/- 0.55% | 0.00% +/- 0.00% | 0.40% +/- 0.55% | 0.00 |
+| PPO otimizado sem barreiras | 4.71 +/- 0.51 | 99.80% +/- 0.45% | 0.00% +/- 0.00% | 0.20% +/- 0.45% | 0.00 |
+| PPO otimizado sem reward shaping | -12.70 +/- 41.72 | 79.60% +/- 44.51% | 7.20% +/- 16.10% | 13.20% +/- 28.41% | 0.77 |
 
 ## Graficos
 
@@ -102,6 +102,20 @@ Investigam por que as barreiras quase nao sao usadas: sem kits de barreira e sem
 ### Default x otimizado
 
 ![Default x otimizado](figures/stage6_default_vs_tuned.png)
+
+### Episodio de teste por algoritmo (modelo otimizado, deterministica)
+
+**A2C**
+
+![Episodio A2C](figures/stage6_episode_a2c.gif)
+
+**DQN**
+
+![Episodio DQN](figures/stage6_episode_dqn.gif)
+
+**PPO**
+
+![Episodio PPO](figures/stage6_episode_ppo.gif)
 
 ## Arquivos gerados
 

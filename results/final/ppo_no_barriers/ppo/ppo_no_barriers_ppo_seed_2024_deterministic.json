@@ -5,7 +5,7 @@
   },
   "barriers_installed_mean": 0.0,
   "battery_depleted_rate": 0.0,
-  "battery_spent_mean": 15.0,
+  "battery_spent_mean": 15.04,
   "deterministic": true,
   "effective_barriers_installed_mean": 0.0,
   "env_params": {
@@ -26,18 +26,18 @@
     "step_penalty": -1.0
   },
   "episodes": 100,
-  "final_battery_mean": 85.0,
+  "final_battery_mean": 84.96,
   "pickup_rate": 1.0,
   "return_max": 5.0,
-  "return_mean": 4.88,
+  "return_mean": 4.83,
   "return_min": -7.0,
-  "return_std": 1.1999999999999997,
+  "return_std": 1.2148492029295592,
   "seed": 50000,
-  "stall_step_rate": 0.007936507936507936,
+  "stall_step_rate": 0.01120632827949901,
   "stalled_episode_rate": 0.01,
-  "steps_mean": 15.12,
+  "steps_mean": 15.17,
   "steps_to_pickup_mean": 5.0,
-  "steps_to_success_mean": 15.12,
+  "steps_to_success_mean": 15.17,
   "success_rate": 1.0,
   "termination_counts": {
     "success": 100

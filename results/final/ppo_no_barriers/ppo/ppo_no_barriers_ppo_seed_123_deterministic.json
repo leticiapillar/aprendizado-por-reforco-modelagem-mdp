@@ -5,7 +5,7 @@
   },
   "barriers_installed_mean": 0.0,
   "battery_depleted_rate": 0.0,
-  "battery_spent_mean": 15.0,
+  "battery_spent_mean": 15.06,
   "deterministic": true,
   "effective_barriers_installed_mean": 0.0,
   "env_params": {
@@ -26,7 +26,7 @@
     "step_penalty": -1.0
   },
   "episodes": 100,
-  "final_battery_mean": 85.0,
+  "final_battery_mean": 84.94,
   "pickup_rate": 1.0,
   "return_max": 5.0,
   "return_mean": 5.0,

@@ -24,7 +24,7 @@
   },
   "best_trial_number": 0,
   "best_value": 4.14,
-  "completed_trials": 21,
+  "completed_trials": 15,
   "direction": "MAXIMIZE",
   "env_kwargs": {},
   "eval_episodes": 50,

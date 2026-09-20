@@ -1,12 +1,11 @@
 {
   "animal_lost_rate": 0.0,
   "animal_status_counts": {
-    "saved": 99,
-    "with_robot": 1
+    "saved": 100
   },
   "barriers_installed_mean": 0.0,
   "battery_depleted_rate": 0.0,
-  "battery_spent_mean": 15.09,
+  "battery_spent_mean": 15.1,
   "deterministic": true,
   "effective_barriers_installed_mean": 0.0,
   "env_params": {
@@ -27,22 +26,21 @@
     "step_penalty": -1.0
   },
   "episodes": 100,
-  "final_battery_mean": 84.91,
+  "final_battery_mean": 84.9,
   "pickup_rate": 1.0,
   "return_max": 5.0,
-  "return_mean": 3.95,
-  "return_min": -100.0,
-  "return_std": 10.500000000000005,
+  "return_mean": 4.74,
+  "return_min": -10.0,
+  "return_std": 1.6306409472933947,
   "seed": 50000,
-  "stall_step_rate": 0.05425867507886435,
+  "stall_step_rate": 0.01703800786369594,
   "stalled_episode_rate": 0.01,
-  "steps_mean": 15.85,
+  "steps_mean": 15.26,
   "steps_to_pickup_mean": 5.0,
-  "steps_to_success_mean": 15.0,
-  "success_rate": 0.99,
+  "steps_to_success_mean": 15.26,
+  "success_rate": 1.0,
   "termination_counts": {
-    "max_steps": 1,
-    "success": 99
+    "success": 100
   },
-  "truncated_rate": 0.01
+  "truncated_rate": 0.0
 }
