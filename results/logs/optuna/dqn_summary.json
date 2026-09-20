@@ -4,45 +4,688 @@
     "metrics": {
       "animal_lost_rate": 0.0,
       "battery_depleted_rate": 0.0,
-      "battery_spent_mean": 36.06666666666667,
-      "effective_barriers_installed_mean": 0.16666666666666666,
-      "pickup_rate": 0.9333333333333333,
-      "return_mean": -59.166666666666664,
-      "return_std": 38.6541547334943,
-      "steps_mean": 70.66666666666667,
-      "steps_to_success_mean": 45.0,
-      "success_rate": 0.5333333333333333,
-      "truncated_rate": 0.4666666666666667
+      "battery_spent_mean": 31.3,
+      "effective_barriers_installed_mean": 0.98,
+      "pickup_rate": 1.0,
+      "return_mean": 5.0,
+      "return_std": 15.89634793123944,
+      "steps_mean": 19.5,
+      "steps_to_success_mean": 17.857142857142858,
+      "success_rate": 0.98,
+      "truncated_rate": 0.02
     },
     "number": 15,
     "params": {
-      "batch_size": 256,
-      "buffer_size": 50000,
-      "exploration_final_eps": 0.11829027147571486,
-      "exploration_fraction": 0.36336360080791485,
-      "gamma": 0.9855189279046139,
-      "gradient_steps": 2,
-      "learning_rate": 2.4164446480379186e-05,
+      "batch_size": 128,
+      "buffer_size": 25000,
+      "exploration_final_eps": 0.09825823274170466,
+      "exploration_fraction": 0.29608526136662955,
+      "gamma": 0.9517871551576235,
+      "gradient_steps": 4,
+      "learning_rate": 0.0010132801757714374,
       "learning_starts": 1000,
-      "target_update_interval": 250,
+      "target_update_interval": 5000,
       "train_freq": 4
     },
-    "value": -59.166666666666664
+    "value": 5.625
   },
-  "completed_trials": 9,
+  "budget": {
+    "env_kwargs": {},
+    "eval_episodes": 50,
+    "eval_freq": 10000,
+    "eval_mode": "deterministic",
+    "eval_seed_offset": 20000,
+    "pruning_eval_episodes": 20,
+    "seed": 42,
+    "total_timesteps": 100000
+  },
+  "completed_trials": 21,
+  "default_trial": {
+    "metrics": {
+      "animal_lost_rate": 0.0,
+      "battery_depleted_rate": 0.0,
+      "battery_spent_mean": 15.0,
+      "effective_barriers_installed_mean": 0.0,
+      "pickup_rate": 1.0,
+      "return_mean": 5.0,
+      "return_std": 0.0,
+      "steps_mean": 15.0,
+      "steps_to_success_mean": 15.0,
+      "success_rate": 1.0,
+      "truncated_rate": 0.0
+    },
+    "number": 0,
+    "params": {
+      "batch_size": 32,
+      "buffer_size": 100000,
+      "exploration_final_eps": 0.05,
+      "exploration_fraction": 0.1,
+      "gamma": 0.99,
+      "gradient_steps": 1,
+      "learning_rate": 0.0001,
+      "learning_starts": 100,
+      "target_update_interval": 10000,
+      "train_freq": 4
+    },
+    "state": "COMPLETE",
+    "value": -5.3950000000000005
+  },
   "env_kwargs": {},
-  "eval_episodes": 30,
+  "eval_episodes": 50,
   "failed_trials": 0,
   "paths": {
     "best_config": "results/logs/optuna/dqn_best_params.json",
+    "intermediate_csv": "results/logs/optuna/dqn_intermediate.csv",
     "optimization_history": "results/figures/optuna_dqn_history.png",
     "param_importance": "results/figures/optuna_dqn_param_importance.png",
     "storage": "results/logs/optuna/optuna_dqn.db",
     "trials_csv": "results/logs/optuna/dqn_trials.csv"
   },
-  "pruned_trials": 21,
+  "pruned_trials": 9,
   "storage": "results/logs/optuna/optuna_dqn.db",
   "study_name": "floodguard_stage5_dqn",
   "total_timesteps_per_trial": 100000,
-  "total_trials": 30
+  "total_trials": 30,
+  "trials": [
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 0,
+      "params": {
+        "batch_size": 32,
+        "buffer_size": 100000,
+        "exploration_final_eps": 0.05,
+        "exploration_fraction": 0.1,
+        "gamma": 0.99,
+        "gradient_steps": 1,
+        "learning_rate": 0.0001,
+        "learning_starts": 100,
+        "target_update_interval": 10000,
+        "train_freq": 4
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -5.3950000000000005
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 1,
+      "params": {
+        "batch_size": 64,
+        "buffer_size": 100000,
+        "exploration_final_eps": 0.09539049671515958,
+        "exploration_fraction": 0.4998140775891578,
+        "gamma": 0.9547174292858196,
+        "gradient_steps": 2,
+        "learning_rate": 0.0008536123671035461,
+        "learning_starts": 500,
+        "target_update_interval": 10000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 0.9049999999999997
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 2,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 100000,
+        "exploration_final_eps": 0.07148345608113923,
+        "exploration_fraction": 0.47954547064421604,
+        "gamma": 0.9969622366405178,
+        "gradient_steps": 1,
+        "learning_rate": 6.215199394057784e-05,
+        "learning_starts": 2000,
+        "target_update_interval": 2000,
+        "train_freq": 4
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.0,
+      "value": -57.254999999999995
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 3,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 10000,
+        "exploration_final_eps": 0.19428287191077892,
+        "exploration_fraction": 0.0592630224331111,
+        "gamma": 0.970736450521825,
+        "gradient_steps": 4,
+        "learning_rate": 8.468008575248323e-05,
+        "learning_starts": 100,
+        "target_update_interval": 250,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 1.205
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 4,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 100000,
+        "exploration_final_eps": 0.10334385654593989,
+        "exploration_fraction": 0.2551565245653914,
+        "gamma": 0.9574436723007514,
+        "gradient_steps": 2,
+        "learning_rate": 0.0015568558349359442,
+        "learning_starts": 100,
+        "target_update_interval": 500,
+        "train_freq": 4
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.8549999999999995
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 5,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.09569054372800267,
+        "exploration_fraction": 0.20345924281687067,
+        "gamma": 0.9743506710075492,
+        "gradient_steps": 4,
+        "learning_rate": 0.0004196806300892122,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.7299999999999995
+    },
+    {
+      "final": true,
+      "last_step": 60000,
+      "number": 6,
+      "params": {
+        "batch_size": 32,
+        "buffer_size": 100000,
+        "exploration_final_eps": 0.03318726462050798,
+        "exploration_fraction": 0.2480686221828206,
+        "gamma": 0.9683548793485645,
+        "gradient_steps": 2,
+        "learning_rate": 1.3033567475147436e-05,
+        "learning_starts": 500,
+        "target_update_interval": 1000,
+        "train_freq": 16
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -6.35
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 7,
+      "params": {
+        "batch_size": 256,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.15179294694902296,
+        "exploration_fraction": 0.2573965583028244,
+        "gamma": 0.9055778037183954,
+        "gradient_steps": 2,
+        "learning_rate": 0.002864252722173305,
+        "learning_starts": 1000,
+        "target_update_interval": 500,
+        "train_freq": 16
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -2.755
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 8,
+      "params": {
+        "batch_size": 256,
+        "buffer_size": 50000,
+        "exploration_final_eps": 0.14114694397813757,
+        "exploration_fraction": 0.30452589080663145,
+        "gamma": 0.9056419274050256,
+        "gradient_steps": 2,
+        "learning_rate": 0.0025258910682419574,
+        "learning_starts": 1000,
+        "target_update_interval": 500,
+        "train_freq": 1
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 3.65
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 9,
+      "params": {
+        "batch_size": 256,
+        "buffer_size": 50000,
+        "exploration_final_eps": 0.15712033365492137,
+        "exploration_fraction": 0.3567851814098987,
+        "gamma": 0.9108787513668263,
+        "gradient_steps": 2,
+        "learning_rate": 0.002785759463605888,
+        "learning_starts": 100,
+        "target_update_interval": 500,
+        "train_freq": 1
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": 3.9
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 10,
+      "params": {
+        "batch_size": 256,
+        "buffer_size": 50000,
+        "exploration_final_eps": 0.13395354582291225,
+        "exploration_fraction": 0.3833822522893931,
+        "gamma": 0.9336308353481996,
+        "gradient_steps": 2,
+        "learning_rate": 1.0249638865891875e-05,
+        "learning_starts": 100,
+        "target_update_interval": 500,
+        "train_freq": 1
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -31.55
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 11,
+      "params": {
+        "batch_size": 64,
+        "buffer_size": 10000,
+        "exploration_final_eps": 0.013397048930171976,
+        "exploration_fraction": 0.37711513801020213,
+        "gamma": 0.9340891976842205,
+        "gradient_steps": 2,
+        "learning_rate": 1.0922834389511516e-05,
+        "learning_starts": 2000,
+        "target_update_interval": 500,
+        "train_freq": 4
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -47.35
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 12,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 50000,
+        "exploration_final_eps": 0.13144212546976644,
+        "exploration_fraction": 0.15187724770494404,
+        "gamma": 0.936032633198646,
+        "gradient_steps": 1,
+        "learning_rate": 0.0002984996429564142,
+        "learning_starts": 100,
+        "target_update_interval": 2000,
+        "train_freq": 1
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.075
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 13,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.10424405404408396,
+        "exploration_fraction": 0.187044762174558,
+        "gamma": 0.9570535113623198,
+        "gradient_steps": 4,
+        "learning_rate": 0.0005727088636734919,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 5.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 14,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.1106116501778711,
+        "exploration_fraction": 0.15285241406988537,
+        "gamma": 0.9449810297571501,
+        "gradient_steps": 4,
+        "learning_rate": 0.0007459798846855273,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 4
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.94,
+      "value": 4.805
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 15,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.09825823274170466,
+        "exploration_fraction": 0.29608526136662955,
+        "gamma": 0.9517871551576235,
+        "gradient_steps": 4,
+        "learning_rate": 0.0010132801757714374,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 4
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.98,
+      "value": 5.625
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 16,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.10815343805882734,
+        "exploration_fraction": 0.16802212046600926,
+        "gamma": 0.9535088639771454,
+        "gradient_steps": 4,
+        "learning_rate": 0.0008261489863840909,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.965
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 17,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.07278862109870017,
+        "exploration_fraction": 0.19006115622429748,
+        "gamma": 0.9556207196140173,
+        "gradient_steps": 4,
+        "learning_rate": 0.0010602251699922572,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 5.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 18,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.07596675756964699,
+        "exploration_fraction": 0.20108704112307077,
+        "gamma": 0.9194736472104638,
+        "gradient_steps": 4,
+        "learning_rate": 0.00019535495854229934,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -4.359999999999999
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 19,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.07096616706362782,
+        "exploration_fraction": 0.32553358157404066,
+        "gamma": 0.9223631177554902,
+        "gradient_steps": 4,
+        "learning_rate": 0.00028444658742611274,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 1.2899999999999998
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 20,
+      "params": {
+        "batch_size": 32,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.17867811308251025,
+        "exploration_fraction": 0.3153040273632388,
+        "gamma": 0.922486729642586,
+        "gradient_steps": 4,
+        "learning_rate": 0.00022310825027442355,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 16
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": 1.5
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 21,
+      "params": {
+        "batch_size": 64,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.07249130552173177,
+        "exploration_fraction": 0.4374353158556307,
+        "gamma": 0.9872438361256645,
+        "gradient_steps": 4,
+        "learning_rate": 0.0004508018794095733,
+        "learning_starts": 1000,
+        "target_update_interval": 250,
+        "train_freq": 8
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -83.0
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 22,
+      "params": {
+        "batch_size": 64,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.04628450551363595,
+        "exploration_fraction": 0.433141659390175,
+        "gamma": 0.9778148725512793,
+        "gradient_steps": 4,
+        "learning_rate": 0.0004418835605192728,
+        "learning_starts": 500,
+        "target_update_interval": 250,
+        "train_freq": 4
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -5.15
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 23,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.05248878259921805,
+        "exploration_fraction": 0.10880933866181697,
+        "gamma": 0.9628910838506234,
+        "gradient_steps": 4,
+        "learning_rate": 0.0011431196825820865,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 5.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 24,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.08460161871275043,
+        "exploration_fraction": 0.09873182725605818,
+        "gamma": 0.9622492281469611,
+        "gradient_steps": 4,
+        "learning_rate": 0.0013742974747574252,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.529999999999999
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 25,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.12360675886940883,
+        "exploration_fraction": 0.21326894780254319,
+        "gamma": 0.9649773546621612,
+        "gradient_steps": 4,
+        "learning_rate": 0.0013904366649323103,
+        "learning_starts": 1000,
+        "target_update_interval": 5000,
+        "train_freq": 8
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": 4.95
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 26,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 10000,
+        "exploration_final_eps": 0.08087553005994963,
+        "exploration_fraction": 0.11442570700408553,
+        "gamma": 0.944728488265822,
+        "gradient_steps": 4,
+        "learning_rate": 0.0013945581048279436,
+        "learning_starts": 2000,
+        "target_update_interval": 1000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 5.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 27,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 10000,
+        "exploration_final_eps": 0.05744058373631472,
+        "exploration_fraction": 0.28566350033098625,
+        "gamma": 0.9447647972183537,
+        "gradient_steps": 4,
+        "learning_rate": 0.0007504159954435225,
+        "learning_starts": 2000,
+        "target_update_interval": 1000,
+        "train_freq": 8
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 5.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 28,
+      "params": {
+        "batch_size": 128,
+        "buffer_size": 10000,
+        "exploration_final_eps": 0.11967181275682051,
+        "exploration_fraction": 0.28131428401259473,
+        "gamma": 0.9425627794843305,
+        "gradient_steps": 4,
+        "learning_rate": 0.0005938071249481865,
+        "learning_starts": 2000,
+        "target_update_interval": 1000,
+        "train_freq": 4
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.35
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 29,
+      "params": {
+        "batch_size": 32,
+        "buffer_size": 25000,
+        "exploration_final_eps": 0.033305389975664255,
+        "exploration_fraction": 0.2243244024998815,
+        "gamma": 0.9835452485586204,
+        "gradient_steps": 1,
+        "learning_rate": 3.2185023178040634e-05,
+        "learning_starts": 1000,
+        "target_update_interval": 10000,
+        "train_freq": 4
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -53.4
+    }
+  ]
 }

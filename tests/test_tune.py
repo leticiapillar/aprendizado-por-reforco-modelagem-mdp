@@ -5,7 +5,9 @@ import json
 
 import optuna
 
-from experiments.tune import optimize_hyperparams, suggest_hyperparams
+import pytest
+
+from experiments.tune import DEFAULT_PARAMS, optimize_hyperparams, suggest_hyperparams
 
 
 def test_stage5_search_spaces_cover_required_algorithms():
@@ -51,7 +53,7 @@ def test_stage5_search_spaces_cover_required_algorithms():
         assert set(params) == keys
 
 
-def test_optimize_hyperparams_writes_stage5_artifacts(tmp_path):
+def _tiny_args(tmp_path, **overrides):
     args = Namespace(
         algo="a2c",
         n_trials=1,
@@ -63,6 +65,10 @@ def test_optimize_hyperparams_writes_stage5_artifacts(tmp_path):
         seed=123,
         eval_seed_offset=100,
         n_startup_trials=1,
+        pruner_warmup_evals=2,
+        sampler_seed=None,
+        enqueue_default=True,
+        stochastic_eval=False,
         log_dir=tmp_path / "logs",
         figure_dir=tmp_path / "figures",
         report_path=tmp_path / "relatorio_etapa_5.md",
@@ -73,6 +79,27 @@ def test_optimize_hyperparams_writes_stage5_artifacts(tmp_path):
         flood_advance_prob=0.0,
         flood_deepen_prob=0.0,
     )
+    for key, value in overrides.items():
+        setattr(args, key, value)
+    return args
+
+
+def test_default_params_lie_inside_search_space():
+    for algo, defaults in DEFAULT_PARAMS.items():
+        study = optuna.create_study(direction="maximize")
+        study.enqueue_trial(defaults)
+        trial = study.ask()
+        assert suggest_hyperparams(trial, algo) == defaults
+
+
+def test_existing_study_with_other_budget_is_rejected(tmp_path):
+    optimize_hyperparams(_tiny_args(tmp_path))
+    with pytest.raises(ValueError, match="orcamento"):
+        optimize_hyperparams(_tiny_args(tmp_path, total_timesteps=4))
+
+
+def test_optimize_hyperparams_writes_stage5_artifacts(tmp_path):
+    args = _tiny_args(tmp_path)
 
     result = optimize_hyperparams(args)
 
@@ -88,3 +115,8 @@ def test_optimize_hyperparams_writes_stage5_artifacts(tmp_path):
     summary = json.loads(result["paths"]["summary"].read_text(encoding="utf-8"))
     assert not summary["storage"].startswith("/")
     assert all(not path.startswith("/") for path in summary["paths"].values())
+
+    assert summary["default_trial"]["params"] == DEFAULT_PARAMS["a2c"]
+    assert summary["budget"]["eval_mode"] == "deterministic"
+    assert len(summary["trials"]) == 1
+    assert result["paths"]["intermediate_csv"].exists()

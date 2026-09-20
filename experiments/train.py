@@ -21,7 +21,8 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
-from gymnasium.wrappers import FlattenObservation, RescaleObservation
+import torch
+from gymnasium.wrappers import FlattenObservation
 from stable_baselines3 import A2C, DQN, PPO
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.monitor import Monitor
@@ -131,6 +132,31 @@ class RescueProgressReward(gym.Wrapper):
         return observation, float(reward + shaped_progress), terminated, truncated, info
 
 
+class NormalizeObservation(gym.ObservationWrapper):
+    """Normaliza a observacao achatada para float32 em [0, 1].
+
+    O `Box` achatado do ambiente e inteiro (int64). O `RescaleObservation` do
+    Gymnasium preserva esse dtype e trunca os valores para inteiros, o que
+    zerava posicao, bateria e passos restantes. Aqui a conversao para float32
+    ocorre antes da divisao pela amplitude do espaco (eixos de amplitude zero,
+    como os kits com `initial_barrier_kits=0`, ficam em 0).
+    """
+
+    def __init__(self, env: gym.Env):
+        super().__init__(env)
+        space = env.observation_space
+        self._low = space.low.astype(np.float32)
+        span = (space.high - space.low).astype(np.float32)
+        self._span = np.where(span > 0, span, 1.0).astype(np.float32)
+        self.observation_space = gym.spaces.Box(
+            low=0.0, high=1.0, shape=space.shape, dtype=np.float32
+        )
+
+    def observation(self, observation: np.ndarray) -> np.ndarray:
+        scaled = (observation.astype(np.float32) - self._low) / self._span
+        return np.clip(scaled, 0.0, 1.0)
+
+
 def _env_kwargs_from_args(args: argparse.Namespace) -> dict[str, Any]:
     """Traduz overrides opcionais da CLI para argumentos do FloodGuardEnv."""
     env_kwargs: dict[str, Any] = {}
@@ -196,9 +222,9 @@ def make_training_env(
     env = FlattenObservation(env)
 
     # O vetor achatado mistura mapas 0/1 com bateria e passos que chegam a 100.
-    # Colocar todas as entradas em [0, 1] evita que os campos de maior escala
-    # dominem a rede, mantendo intactos o MDP e os hiperparametros default.
-    return RescaleObservation(env, min_obs=0.0, max_obs=1.0)
+    # Colocar todas as entradas em [0, 1] (float32) evita que os campos de maior
+    # escala dominem a rede, mantendo intactos o MDP e os hiperparametros default.
+    return NormalizeObservation(env)
 
 
 def build_model(
@@ -256,6 +282,20 @@ def _episode_from_info(
     )
 
 
+# Passos consecutivos sem nenhuma mudanca no robo que caracterizam um travamento.
+STALL_WINDOW = 10
+
+
+def _progress_signature(env: FloodGuardEnv) -> tuple[Any, ...]:
+    """Estado do robo/animal que muda quando a acao teve algum efeito."""
+    return (
+        tuple(int(value) for value in env.robot_pos),
+        int(env.battery),
+        int(env.kits_remaining),
+        int(env.animal_status),
+    )
+
+
 def _as_discrete_action(action: Any) -> int:
     """Normaliza a saida do SB3 para a acao discreta esperada pelo ambiente."""
     return int(np.asarray(action).item())
@@ -267,15 +307,28 @@ def evaluate_model(
     episodes: int,
     seed: int,
     env_kwargs: dict[str, Any] | None = None,
-    deterministic: bool = False,
+    deterministic: bool = True,
 ) -> tuple[list[EpisodeMetrics], dict[str, Any]]:
-    """Avalia a politica treinada em episodios novos."""
+    """Avalia a politica treinada em episodios novos.
+
+    O modo padrao e deterministico (acao de maior valor/probabilidade), que e
+    a politica que o algoritmo aprendeu e a unica comparavel entre os tres:
+    no DQN, `deterministic=False` significa epsilon-greedy com o epsilon final
+    do treino, nao uma politica estocastica aprendida.
+
+    Alem das metricas do baseline, o resumo traz um diagnostico de travamento:
+    `stall_step_rate` (fracao de passos sem nenhuma mudanca no robo) e
+    `stalled_episode_rate` (episodios com >= STALL_WINDOW passos seguidos assim).
+    """
     if episodes <= 0:
         raise ValueError("episodes must be positive")
 
     env = make_training_env(seed=seed, env_kwargs=env_kwargs)
     unwrapped_env = env.unwrapped
     episode_metrics: list[EpisodeMetrics] = []
+    stall_steps = 0
+    total_steps = 0
+    stalled_episodes = 0
 
     try:
         for episode in range(episodes):
@@ -285,15 +338,25 @@ def evaluate_model(
             terminated = False
             truncated = False
             info: dict[str, Any] = {}
+            run_length = 0
+            longest_run = 0
 
             while not (terminated or truncated):
-                # A Etapa 4 usa a politica estocastica. A Etapa 6 ativa o modo
-                # deterministico para comparar todos os modelos da mesma forma.
+                before = _progress_signature(unwrapped_env)
                 action, _ = model.predict(obs, deterministic=deterministic)
                 obs, reward, terminated, truncated, info = env.step(
                     _as_discrete_action(action)
                 )
                 total_return += float(reward)
+
+                total_steps += 1
+                if _progress_signature(unwrapped_env) == before:
+                    stall_steps += 1
+                    run_length += 1
+                    longest_run = max(longest_run, run_length)
+                else:
+                    run_length = 0
+            stalled_episodes += int(longest_run >= STALL_WINDOW)
 
             episode_metrics.append(
                 _episode_from_info(
@@ -311,6 +374,9 @@ def evaluate_model(
             seed=seed,
             env_params=_describe_env(unwrapped_env),
         )
+        summary["deterministic"] = bool(deterministic)
+        summary["stall_step_rate"] = stall_steps / max(total_steps, 1)
+        summary["stalled_episode_rate"] = stalled_episodes / episodes
         return episode_metrics, summary
     finally:
         env.close()
@@ -368,6 +434,7 @@ def train_default_model(args: argparse.Namespace) -> dict[str, Any]:
             episodes=args.eval_episodes,
             seed=seed + args.eval_seed_offset,
             env_kwargs=env_kwargs,
+            deterministic=not args.stochastic_eval,
         )
         _baseline_episodes, baseline = evaluate_random_policy(
             episodes=args.eval_episodes,
@@ -395,6 +462,7 @@ def train_default_model(args: argparse.Namespace) -> dict[str, Any]:
                 "tensorboard": _project_relative_path(tensorboard_dir),
             },
             "evaluation": evaluation,
+            "eval_mode": "stochastic" if args.stochastic_eval else "deterministic",
             "random_baseline": baseline,
             "validation": validation,
             "episodes": [asdict(metrics) for metrics in eval_episodes],
@@ -422,7 +490,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--eval-episodes",
         type=int,
         default=100,
-        help="Number of deterministic evaluation episodes after training.",
+        help="Number of evaluation episodes after training.",
     )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument(
@@ -433,6 +501,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--log-dir", type=Path, default=DEFAULT_LOG_ROOT)
     parser.add_argument("--model-dir", type=Path, default=DEFAULT_MODEL_ROOT)
+    parser.add_argument(
+        "--stochastic-eval",
+        action="store_true",
+        help="Evaluate with a sampled/epsilon-greedy policy instead of the default deterministic one.",
+    )
     parser.add_argument("--log-interval", type=int, default=10)
     parser.add_argument("--progress-bar", action="store_true")
     parser.add_argument("--max-steps", type=int, default=None)
@@ -452,6 +525,8 @@ def _number(value: float | None, digits: int = 2) -> str:
 
 
 def main() -> None:
+    # Redes MLP minusculas: varias threads de torch so causam contencao.
+    torch.set_num_threads(1)
     args = build_parser().parse_args()
     result = train_default_model(args)
     evaluation = result["evaluation"]

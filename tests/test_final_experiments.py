@@ -38,7 +38,13 @@ def test_stage6_writes_comparison_artifacts(tmp_path):
         output_dir=tmp_path / "final",
         figure_dir=tmp_path / "figures",
         report_path=tmp_path / "relatorio_etapa_6.md",
-        stochastic_eval=False,
+        curve_eval_freq=1,
+        curve_eval_episodes=1,
+        workers=1,
+        report_only=False,
+        with_defaults=True,
+        ablations=False,
+        render_episodes=True,
         reuse_models=False,
         progress_bar=False,
         verbose=0,
@@ -50,11 +56,26 @@ def test_stage6_writes_comparison_artifacts(tmp_path):
 
     result = run_final_experiments(args)
 
+    summary = result["summary"]
     assert result["report"].exists()
-    assert (args.output_dir / "final_summary.json").exists()
-    assert (args.output_dir / "final_seed_results.csv").exists()
-    assert (args.output_dir / "final_episode_results.csv").exists()
-    assert (args.figure_dir / "stage6_learning_curves.png").exists()
-    assert (args.figure_dir / "stage6_return_boxplot.png").exists()
-    assert (args.figure_dir / "stage6_final_metrics.png").exists()
-    assert result["summary"]["deterministic"] is True
+    for name in ("final_summary.json", "final_seed_results.csv", "final_episode_results.csv",
+                 "learning_curves.csv", "eval_curves.csv"):
+        assert (args.output_dir / name).exists()
+    for name in ("stage6_learning_curves", "stage6_eval_curves", "stage6_return_boxplot",
+                 "stage6_final_metrics", "stage6_default_vs_tuned", "stage6_episode_a2c"):
+        assert list(args.figure_dir.glob(f"{name}.*"))
+    assert summary["primary_eval_mode"] == "deterministic"
+    assert set(summary["aggregates"]) == {"tuned", "default"}
+    assert set(summary["aggregates"]["tuned"]["a2c"]) == {"deterministic", "stochastic"}
+    assert "stall_step_rate_mean" in summary["aggregates"]["tuned"]["a2c"]["deterministic"]
+    assert "avaliacao principal" in result["report"].read_text(encoding="utf-8").lower()
+
+    assert "Referencia do MDP" in result["report"].read_text(encoding="utf-8")
+
+    # `--report-only` reconstroi figuras e relatorio dos arquivos salvos, sem treinar.
+    args.report_only = True
+    args.render_episodes = False
+    args.report_path = tmp_path / "relatorio_regenerado.md"
+    regenerated = run_final_experiments(args)
+    assert regenerated["report"].exists()
+    assert regenerated["summary"]["aggregates"] == summary["aggregates"]

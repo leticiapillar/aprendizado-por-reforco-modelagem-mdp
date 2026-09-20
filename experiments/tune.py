@@ -32,7 +32,9 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 import optuna
+import torch
 from optuna.exceptions import ExperimentalWarning
 from optuna.importance import PedAnovaImportanceEvaluator, get_param_importances
 from optuna.trial import TrialState
@@ -89,6 +91,45 @@ REPORT_METRICS = (
 )
 
 
+# Hiperparametros default do SB3 (dentro do espaco de busca). Entram como o
+# trial 0 de cada estudo, com o mesmo orcamento e as mesmas seeds dos demais,
+# para que o ganho da otimizacao seja medido contra o default.
+DEFAULT_PARAMS: dict[str, dict[str, Any]] = {
+    "dqn": {
+        "learning_rate": 1e-4,
+        "buffer_size": 100_000,
+        "batch_size": 32,
+        "gamma": 0.99,
+        "exploration_fraction": 0.10,
+        "exploration_final_eps": 0.05,
+        "target_update_interval": 10_000,
+        "train_freq": 4,
+        "gradient_steps": 1,
+        "learning_starts": 100,
+    },
+    "ppo": {
+        "learning_rate": 3e-4,
+        "n_steps": 2_048,
+        "batch_size": 64,
+        "n_epochs": 10,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "clip_range": 0.2,
+        "ent_coef": 1e-8,
+        "vf_coef": 0.5,
+    },
+    "a2c": {
+        "learning_rate": 7e-4,
+        "n_steps": 5,
+        "gamma": 0.99,
+        "gae_lambda": 1.0,
+        "ent_coef": 1e-8,
+        "vf_coef": 0.5,
+        "max_grad_norm": 0.5,
+    },
+}
+
+
 def suggest_hyperparams(trial: optuna.Trial, algo: str) -> dict[str, Any]:
     """Defines the Stage 5 search space for one algorithm."""
     algo = algo.lower()
@@ -107,7 +148,7 @@ def suggest_hyperparams(trial: optuna.Trial, algo: str) -> dict[str, Any]:
                 "exploration_final_eps", 0.01, 0.20
             ),
             "target_update_interval": trial.suggest_categorical(
-                "target_update_interval", [250, 500, 1_000, 2_000, 5_000]
+                "target_update_interval", [250, 500, 1_000, 2_000, 5_000, 10_000]
             ),
             "train_freq": trial.suggest_categorical("train_freq", [1, 4, 8, 16]),
             "gradient_steps": trial.suggest_categorical("gradient_steps", [1, 2, 4]),
@@ -117,7 +158,7 @@ def suggest_hyperparams(trial: optuna.Trial, algo: str) -> dict[str, Any]:
         }
 
     if algo == "ppo":
-        n_steps = trial.suggest_categorical("n_steps", [64, 128, 256, 512, 1_024])
+        n_steps = trial.suggest_categorical("n_steps", [64, 128, 256, 512, 1_024, 2_048])
         return {
             "learning_rate": trial.suggest_float("learning_rate", 1e-5, 3e-3, log=True),
             "n_steps": n_steps,
@@ -181,14 +222,17 @@ class TrialEvalCallback(BaseCallback):
         eval_seed: int,
         env_kwargs: dict[str, Any],
         total_timesteps: int,
+        deterministic: bool = True,
     ):
         super().__init__(verbose=0)
+        self.deterministic = deterministic
         self.trial = trial
         self.eval_freq = eval_freq
         self.eval_episodes = eval_episodes
         self.eval_seed = eval_seed
         self.env_kwargs = env_kwargs
         self.total_timesteps = total_timesteps
+        self.reports: list[float] = []
 
     def _on_step(self) -> bool:
         if self.eval_freq <= 0 or self.num_timesteps % self.eval_freq != 0:
@@ -197,10 +241,12 @@ class TrialEvalCallback(BaseCallback):
         _episodes, summary = evaluate_model(
             model=self.model,
             episodes=self.eval_episodes,
-            seed=self.eval_seed + self.num_timesteps,
+            seed=self.eval_seed,
             env_kwargs=self.env_kwargs,
+            deterministic=self.deterministic,
         )
         mean_return = float(summary["return_mean"])
+        self.reports.append(mean_return)
         self.trial.report(mean_return, step=self.num_timesteps)
         if self.num_timesteps >= self.total_timesteps:
             return True
@@ -322,11 +368,11 @@ def plot_optimization_history(study: optuna.Study, path: Path, algo: str) -> Pat
         current_best = max(current_best, value)
         best_so_far.append(current_best)
 
-    plt.plot(numbers, values, marker="o", label="Retorno do trial")
+    plt.plot(numbers, values, marker="o", label="Score do trial")
     plt.plot(numbers, best_so_far, marker="s", label="Melhor ate aqui")
     plt.title(f"Optuna - historico de otimizacao ({algo.upper()})")
     plt.xlabel("Trial")
-    plt.ylabel("Retorno medio de avaliacao")
+    plt.ylabel("Score (retorno medio de avaliacao ao longo do treino)")
     plt.grid(alpha=0.25)
     plt.legend()
     return _save_figure(path)
@@ -407,6 +453,40 @@ def write_best_config(
     return path
 
 
+def _trial_rows(study: optuna.Study) -> list[dict[str, Any]]:
+    """Uma linha por trial (inclusive podados) para o relatorio."""
+    rows = []
+    for trial in study.trials:
+        last_step = max(trial.intermediate_values) if trial.intermediate_values else None
+        value = trial.value
+        if value is None and last_step is not None:
+            value = trial.intermediate_values[last_step]
+        rows.append(
+            {
+                "number": trial.number,
+                "state": trial.state.name,
+                "value": value,
+                "final": trial.value is not None,
+                "last_step": last_step,
+                "success_rate": trial.user_attrs.get("success_rate"),
+                "params": trial.params,
+            }
+        )
+    return rows
+
+
+def write_intermediate_csv(study: optuna.Study, path: Path) -> Path:
+    """Retornos intermediarios (usados pelo pruner) de todos os trials."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["trial", "state", "step", "return_mean"])
+        for trial in study.trials:
+            for step, value in sorted(trial.intermediate_values.items()):
+                writer.writerow([trial.number, trial.state.name, step, value])
+    return path
+
+
 def write_summary_json(
     *,
     study: optuna.Study,
@@ -432,12 +512,27 @@ def write_summary_json(
         "total_timesteps_per_trial": total_timesteps,
         "eval_episodes": eval_episodes,
         "env_kwargs": env_kwargs,
+        "budget": study.user_attrs.get("budget"),
+        "trials": _trial_rows(study),
         "paths": {
             key: _project_relative_path(value)
             for key, value in paths.items()
             if key != "storage_url"
         },
     }
+    default_trial = study.trials[0] if study.trials else None
+    if default_trial is not None and default_trial.params == DEFAULT_PARAMS.get(algo):
+        payload["default_trial"] = {
+            "number": default_trial.number,
+            "state": default_trial.state.name,
+            "value": default_trial.value,
+            "params": default_trial.params,
+            "metrics": {
+                key: default_trial.user_attrs.get(key)
+                for key in REPORT_METRICS
+                if key in default_trial.user_attrs
+            },
+        }
     if best_trial is not None:
         payload["best_trial"] = {
             "number": best_trial.number,
@@ -459,12 +554,13 @@ def _make_study(
     storage_path: Path,
     seed: int,
     n_startup_trials: int,
+    warmup_steps: int = 0,
 ) -> optuna.Study:
     storage_path.parent.mkdir(parents=True, exist_ok=True)
     sampler = optuna.samplers.TPESampler(seed=seed, n_startup_trials=n_startup_trials)
     pruner = optuna.pruners.MedianPruner(
         n_startup_trials=n_startup_trials,
-        n_warmup_steps=1,
+        n_warmup_steps=warmup_steps,
         interval_steps=1,
     )
     return optuna.create_study(
@@ -475,6 +571,34 @@ def _make_study(
         pruner=pruner,
         load_if_exists=True,
     )
+
+
+def _budget(args: argparse.Namespace, env_kwargs: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "total_timesteps": args.total_timesteps,
+        "eval_episodes": args.eval_episodes,
+        "pruning_eval_episodes": args.pruning_eval_episodes,
+        "eval_freq": args.eval_freq,
+        "seed": args.seed,
+        "eval_seed_offset": args.eval_seed_offset,
+        "eval_mode": "stochastic" if args.stochastic_eval else "deterministic",
+        "env_kwargs": env_kwargs,
+    }
+
+
+def _check_budget(
+    study: optuna.Study, args: argparse.Namespace, env_kwargs: dict[str, Any]
+) -> None:
+    """Impede misturar trials de orcamentos/protocolos diferentes no mesmo estudo."""
+    budget = _budget(args, env_kwargs)
+    stored = study.user_attrs.get("budget")
+    if stored is None:
+        study.set_user_attr("budget", budget)
+    elif stored != budget:
+        raise ValueError(
+            "O estudo existente foi criado com outro orcamento/protocolo "
+            f"({stored}). Use outro --log-dir ou apague o banco para recomecar."
+        )
 
 
 def _set_trial_metrics(trial: optuna.Trial, summary: dict[str, Any]) -> None:
@@ -493,7 +617,11 @@ def objective(
     env_kwargs: dict[str, Any],
 ) -> float:
     hyperparams = suggest_hyperparams(trial, algo)
-    trial_seed = args.seed + trial.number
+    # Seed de treino e episodios de avaliacao identicos em todos os trials: a
+    # diferenca de retorno vem dos hiperparametros, nao do sorteio de seeds.
+    trial_seed = args.seed
+    eval_seed = args.seed + args.eval_seed_offset
+    deterministic = not args.stochastic_eval
     run_name = f"{algo}_trial_{trial.number}_seed_{trial_seed}"
     monitor_file = args.log_dir / algo / f"{run_name}.monitor.csv"
     tensorboard_dir = args.log_dir / algo / "tensorboard"
@@ -517,9 +645,10 @@ def objective(
             trial=trial,
             eval_freq=args.eval_freq,
             eval_episodes=args.pruning_eval_episodes,
-            eval_seed=args.seed + args.eval_seed_offset + trial.number * 1_000,
+            eval_seed=eval_seed,
             env_kwargs=env_kwargs,
             total_timesteps=args.total_timesteps,
+            deterministic=deterministic,
         )
         model.learn(
             total_timesteps=args.total_timesteps,
@@ -531,13 +660,26 @@ def objective(
         _episodes, summary = evaluate_model(
             model=model,
             episodes=args.eval_episodes,
-            seed=args.seed + args.eval_seed_offset + trial.number * 1_000,
+            seed=eval_seed,
             env_kwargs=env_kwargs,
+            deterministic=deterministic,
         )
         _set_trial_metrics(trial, summary)
+        trial.set_user_attr("final_return_mean", float(summary["return_mean"]))
+        # Objetivo: retorno medio das avaliacoes ao longo do treino parcial (area
+        # sob a curva de aprendizado). Como o cenario inicial e fixo, muitas
+        # configuracoes atingem o retorno otimo no fim; a media ao longo do treino
+        # as desempata pela velocidade de convergencia.
+        score = float(np.mean(callback.reports)) if callback.reports else float(summary["return_mean"])
+        trial.set_user_attr("learning_curve_score", score)
+        for key in ("stall_step_rate", "stalled_episode_rate"):
+            trial.set_user_attr(key, summary.get(key))
+        trial.set_user_attr("total_timesteps", args.total_timesteps)
+        trial.set_user_attr("train_seed", trial_seed)
+        trial.set_user_attr("eval_mode", "deterministic" if deterministic else "stochastic")
         trial.set_user_attr("monitor", _project_relative_path(monitor_file))
         trial.set_user_attr("tensorboard", _project_relative_path(tensorboard_dir))
-        return float(summary["return_mean"])
+        return score
     finally:
         train_env.close()
 
@@ -546,6 +688,9 @@ def optimize_hyperparams(args: argparse.Namespace) -> dict[str, Any]:
     algo = args.algo.lower()
     seed = set_global_seed(args.seed)
     env_kwargs = _env_kwargs_from_args(args)
+    # Processos que compartilham o mesmo banco precisam de seeds de sampler
+    # distintas; caso contrario sorteiam configuracoes identicas.
+    sampler_seed = args.sampler_seed if args.sampler_seed is not None else seed
 
     storage_path = args.log_dir / f"optuna_{algo}.db"
     trials_csv_path = args.log_dir / f"{algo}_trials.csv"
@@ -554,12 +699,17 @@ def optimize_hyperparams(args: argparse.Namespace) -> dict[str, Any]:
     history_path = args.figure_dir / f"optuna_{algo}_history.png"
     importance_path = args.figure_dir / f"optuna_{algo}_param_importance.png"
 
+    warmup_steps = args.pruner_warmup_evals * max(args.eval_freq, 0)
     study = _make_study(
         algo=algo,
         storage_path=storage_path,
-        seed=seed,
+        seed=sampler_seed,
         n_startup_trials=args.n_startup_trials,
+        warmup_steps=warmup_steps,
     )
+    _check_budget(study, args, env_kwargs)
+    if not study.trials and args.enqueue_default:
+        study.enqueue_trial(DEFAULT_PARAMS[algo])
     study.optimize(
         lambda trial: objective(trial, algo=algo, args=args, env_kwargs=env_kwargs),
         n_trials=args.n_trials,
@@ -571,6 +721,9 @@ def optimize_hyperparams(args: argparse.Namespace) -> dict[str, Any]:
     paths = {
         "storage": storage_path,
         "trials_csv": write_trials_csv(study, trials_csv_path),
+        "intermediate_csv": write_intermediate_csv(
+            study, args.log_dir / f"{algo}_intermediate.csv"
+        ),
         "best_config": write_best_config(
             study=study,
             algo=algo,
@@ -624,40 +777,63 @@ def _artifact_link(path_text: str) -> str:
     return f"`{path_text}`"
 
 
+def _compact_params(params: dict[str, Any]) -> str:
+    return ", ".join(f"{name}={_format_param_value(value)}" for name, value in sorted(params.items()))
+
+
+def _metric(metrics: dict[str, Any], key: str, percent: bool = False) -> str:
+    if metrics.get(key) is None:
+        return "n/a"
+    return _percent(metrics[key]) if percent else _number(metrics[key])
+
+
 def _report_insights(summaries: dict[str, dict[str, Any] | None]) -> list[str]:
-    ranked: list[tuple[str, dict[str, Any]]] = []
-    for algo, summary in summaries.items():
-        if summary is not None and summary.get("best_trial"):
-            ranked.append((algo, summary["best_trial"]))
-    ranked.sort(key=lambda item: float(item[1]["value"]), reverse=True)
-
-    if not ranked:
-        return ["- Ainda nao ha trials completos para comparar."]
-
     lines: list[str] = []
-    for position, (algo, best) in enumerate(ranked):
+    for algo, summary in summaries.items():
+        if not summary or not summary.get("best_trial"):
+            continue
+        best = summary["best_trial"]
+        default = summary.get("default_trial") or {}
         metrics = best.get("metrics") or {}
-        success = (
-            _percent(metrics["success_rate"])
-            if "success_rate" in metrics
-            else "n/a"
+        text = (
+            f"- **{algo.upper()}:** melhor score {_number(best.get('value'))} "
+            f"(trial {best['number']}, {_metric(metrics, 'success_rate', True)} de sucesso)"
         )
-        truncated = (
-            _percent(metrics["truncated_rate"])
-            if "truncated_rate" in metrics
-            else "n/a"
-        )
-        label = "maior retorno medio" if position == 0 else "retorno medio"
-        lines.append(
-            f"- **{algo.upper()}:** {label} de {_number(best.get('value'))}, "
-            f"com {success} de sucesso e {truncated} de episodios truncados."
-        )
+        if default.get("value") is not None:
+            gain = float(best["value"]) - float(default["value"])
+            text += (
+                f"; o default do SB3 obteve {_number(default['value'])} "
+                f"(ganho de {_number(gain)})."
+            )
+            if best["number"] == default["number"]:
+                text += " O default foi o melhor trial: a busca nao superou o default."
+        else:
+            text += "."
+        lines.append(text)
+    if not lines:
+        return ["- Ainda nao ha trials completos para comparar."]
+    lines.append(
+        "- Todos os trials usam a mesma seed de treino, os mesmos episodios de "
+        "avaliacao e o mesmo orcamento; diferencas pequenas de retorno estao "
+        "dentro do ruido de 1 seed e devem ser confirmadas na Etapa 6 com varias seeds."
+    )
+    return lines
 
-    if len(ranked) > 1:
-        difference = float(ranked[0][1]["value"]) - float(ranked[1][1]["value"])
+
+def _trial_table(summary: dict[str, Any]) -> list[str]:
+    lines = [
+        "| Trial | Estado | Score | Sucesso final | Hiperparametros |",
+        "|---:|---|---:|---:|---|",
+    ]
+    for row in summary.get("trials") or []:
+        value = _number(row["value"])
+        if not row["final"] and row["value"] is not None:
+            value += f" (passo {row['last_step']})"
+        success = "n/a" if row.get("success_rate") is None else _percent(row["success_rate"])
+        label = "DEFAULT" if row["number"] == 0 and summary.get("default_trial") else row["state"]
         lines.append(
-            f"- A diferenca entre os dois maiores retornos foi {_number(difference)}. "
-            "A comparacao deve ser confirmada com o mesmo orcamento e mais sementes."
+            f"| {row['number']} | {label} | {value} | {success} | "
+            f"{_compact_params(row['params'])} |"
         )
     return lines
 
@@ -671,15 +847,16 @@ def write_stage5_report(report_path: Path, log_dir: Path, figure_dir: Path) -> P
         for algo in sorted(ALGORITHMS)
     }
     run_config_rows = [
-        "| Algoritmo | Limite de passos nos novos trials | Episodios de avaliacao |",
-        "|---|---:|---:|",
+        "| Algoritmo | Passos por trial | Episodios de avaliacao final | Episodios de avaliacao do pruning | Avaliacao |",
+        "|---|---:|---:|---:|---|",
     ]
     for algo in sorted(ALGORITHMS):
-        summary = summaries[algo]
+        budget = (summaries[algo] or {}).get("budget") or {}
         run_config_rows.append(
-            f"| {algo.upper()} | "
-            f"{summary.get('total_timesteps_per_trial', 'n/a') if summary else 'n/a'} | "
-            f"{summary.get('eval_episodes', 'n/a') if summary else 'n/a'} |"
+            f"| {algo.upper()} | {budget.get('total_timesteps', 'n/a')} | "
+            f"{budget.get('eval_episodes', 'n/a')} | "
+            f"{budget.get('pruning_eval_episodes', 'n/a')} | "
+            f"{budget.get('eval_mode', 'n/a')} |"
         )
 
     lines = [
@@ -689,43 +866,42 @@ def write_stage5_report(report_path: Path, log_dir: Path, figure_dir: Path) -> P
         "",
         "## Resumo",
         "",
-        "A Etapa 5 implementou e executou a busca de hiperparametros dos algoritmos "
-        "DQN, PPO e A2C com Optuna. A rodada identifica configuracoes candidatas "
-        "para o treino final e registra todos os resultados para auditoria.",
-        "",
-        "Os resultados servem para selecionar configuracoes candidatas ao treino final. "
-        "Eles nao definem, isoladamente, o melhor algoritmo, pois os estudos acumulam "
-        "trials de execucoes com orcamentos diferentes.",
+        "A Etapa 5 executou a busca de hiperparametros de DQN, PPO e A2C com Optuna. "
+        "Cada estudo tem o mesmo orcamento em todos os trials, avalia a politica "
+        "**deterministica** e inclui os hiperparametros default do SB3 como trial 0, "
+        "de modo que o ganho da otimizacao e medido contra o default.",
         "",
         "## Objetivo",
         "",
-        "Encontrar configuracoes promissoras para cada algoritmo, usando o retorno medio "
-        "de avaliacao como criterio de otimizacao. O treino usa o sinal denso de progresso "
-        "da Etapa 4, enquanto a avaliacao usa a recompensa original do MDP.",
+        "Encontrar configuracoes promissoras para cada algoritmo. O criterio e o retorno "
+        "medio de avaliacao **ao longo do treino parcial** (area sob a curva de aprendizado): "
+        "como o cenario inicial e fixo, varias configuracoes atingem o retorno otimo ao "
+        "final do treino, e a media ao longo do treino as desempata pela velocidade de "
+        "convergencia. O retorno da avaliacao final tambem e registrado (`final_return_mean`). O treino usa o sinal denso de progresso da Etapa 4; "
+        "a avaliacao usa a recompensa original do MDP.",
         "",
-        "## Configuracao da busca",
+        "## Protocolo da busca",
         "",
-        "- O `TPESampler` escolhe novas configuracoes com base nos resultados anteriores.",
-        "- O `MedianPruner` encerra antecipadamente trials com baixo desempenho.",
-        "- Todos os trials, inclusive os podados, permanecem registrados em SQLite e CSV.",
-        "",
-        "A tabela abaixo mostra a configuracao da execucao mais recente. Os totais da "
-        "secao de resultados tambem incluem trials de execucoes anteriores.",
+        "- `TPESampler` propoe novas configuracoes com base nos resultados anteriores.",
+        "- `MedianPruner` encerra trials abaixo da mediana, somente apos um periodo de "
+        "aquecimento (`--pruner-warmup-evals` avaliacoes intermediarias).",
+        "- **Seed de treino e episodios de avaliacao fixos** em todos os trials, para que "
+        "a diferenca entre trials venha dos hiperparametros.",
+        "- **Avaliacao deterministica**: acao de maior valor/probabilidade. No DQN a "
+        "avaliacao estocastica seria epsilon-greedy com o `exploration_final_eps` do "
+        "proprio modelo, o que faria a busca otimizar o modo de avaliacao.",
+        "- O banco SQLite guarda o orcamento do estudo; tentar reutiliza-lo com outro "
+        "orcamento gera erro, evitando misturar trials incomparaveis.",
+        "- Todos os trials, inclusive os podados, ficam no SQLite, em `*_trials.csv` e "
+        "(retornos intermediarios) em `*_intermediate.csv`.",
         "",
         *run_config_rows,
         "",
-        "Os parametros avaliados foram:",
-        "",
-        "- **DQN:** taxa de aprendizado, buffer, lote, desconto, exploracao e frequencia de atualizacao.",
-        "- **PPO:** taxa de aprendizado, passos, lote, epocas, desconto, GAE, clipping e coeficientes de perda.",
-        "- **A2C:** taxa de aprendizado, passos, desconto, GAE, entropia, valor e limite do gradiente.",
-        "",
         "## Resultados",
         "",
-        "| Algoritmo | Trials totais | Trials completos | Trials podados | Melhor retorno | Sucesso | Perda do animal | CSV de trials |",
-        "|---|---:|---:|---:|---:|---:|---:|---|",
+        "| Algoritmo | Trials | Completos | Podados | Score do default | Melhor score | Retorno final (melhor) | Sucesso (melhor) | Perda do animal (melhor) |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
-
     for algo in sorted(ALGORITHMS):
         summary = summaries[algo]
         if summary is None:
@@ -733,63 +909,54 @@ def write_stage5_report(report_path: Path, log_dir: Path, figure_dir: Path) -> P
             continue
         best = summary.get("best_trial") or {}
         metrics = best.get("metrics") or {}
-        paths = summary.get("paths") or {}
+        default = summary.get("default_trial") or {}
         lines.append(
-            "| "
-            + " | ".join(
-                [
-                    algo.upper(),
-                    str(summary.get("total_trials", 0)),
-                    str(summary.get("completed_trials", 0)),
-                    str(summary.get("pruned_trials", 0)),
-                    _number(best.get("value")),
-                    _percent(metrics["success_rate"]) if "success_rate" in metrics else "n/a",
-                    _percent(metrics["animal_lost_rate"])
-                    if "animal_lost_rate" in metrics
-                    else "n/a",
-                    _artifact_link(paths.get("trials_csv", "n/a")),
-                ]
-            )
-            + " |"
+            f"| {algo.upper()} | {summary.get('total_trials', 0)} | "
+            f"{summary.get('completed_trials', 0)} | {summary.get('pruned_trials', 0)} | "
+            f"{_number(default.get('value'))} | {_number(best.get('value'))} | "
+            f"{_metric(metrics, 'return_mean')} | "
+            f"{_metric(metrics, 'success_rate', True)} | "
+            f"{_metric(metrics, 'animal_lost_rate', True)} |"
         )
 
-    lines.extend(
-        [
-            "",
-            "## Leitura dos resultados",
-            "",
-            *_report_insights(summaries),
-            "",
-            "## Melhores configuracoes",
-            "",
-        ]
-    )
+    lines.extend(["", "## Leitura dos resultados", "", *_report_insights(summaries), ""])
+    lines.extend(["## Graficos", ""])
+    for algo in sorted(ALGORITHMS):
+        history = f"optuna_{algo}_history.png"
+        importance = f"optuna_{algo}_param_importance.png"
+        rel = os.path.relpath(figure_dir.resolve(), start=report_path.parent.resolve())
+        lines.extend(
+            [
+                f"### {algo.upper()}",
+                "",
+                f"![Historico {algo.upper()}]({rel}/{history})",
+                "",
+                f"![Importancia {algo.upper()}]({rel}/{importance})",
+                "",
+            ]
+        )
+
+    lines.extend(["## Melhores configuracoes", ""])
     for algo in sorted(ALGORITHMS):
         summary = summaries[algo]
         lines.append(f"### {algo.upper()}")
         if summary is None or not summary.get("best_trial"):
-            lines.extend(
-                [
-                    "",
-                    "Ainda nao ha trials completos para este algoritmo.",
-                    "",
-                ]
-            )
+            lines.extend(["", "Ainda nao ha trials completos para este algoritmo.", ""])
             continue
         best = summary["best_trial"]
         metrics = best.get("metrics") or {}
         lines.extend(
             [
                 "",
-                f"Trial selecionado: `{best['number']}`. Retorno medio: "
+                f"Trial selecionado: `{best['number']}`. Score: "
                 f"`{_number(best.get('value'))}`.",
                 "",
                 "| Metrica | Valor |",
                 "|---|---:|",
                 f"| Retorno medio | {_number(metrics.get('return_mean'))} +/- {_number(metrics.get('return_std'))} |",
-                f"| Taxa de sucesso | {_percent(metrics['success_rate']) if 'success_rate' in metrics else 'n/a'} |",
-                f"| Taxa de perda do animal | {_percent(metrics['animal_lost_rate']) if 'animal_lost_rate' in metrics else 'n/a'} |",
-                f"| Taxa de truncamento | {_percent(metrics['truncated_rate']) if 'truncated_rate' in metrics else 'n/a'} |",
+                f"| Taxa de sucesso | {_metric(metrics, 'success_rate', True)} |",
+                f"| Taxa de perda do animal | {_metric(metrics, 'animal_lost_rate', True)} |",
+                f"| Taxa de truncamento | {_metric(metrics, 'truncated_rate', True)} |",
                 f"| Uso medio de bateria | {_number(metrics.get('battery_spent_mean'))} |",
                 "",
                 *_best_params_table(best.get("params") or {}),
@@ -799,28 +966,34 @@ def write_stage5_report(report_path: Path, log_dir: Path, figure_dir: Path) -> P
 
     lines.extend(
         [
+            "## Todas as configuracoes testadas",
+            "",
+            "Score = media dos retornos de avaliacao ao longo do treino. Trials podados mostram o ultimo retorno intermediario (com o passo em que "
+            "foram encerrados). O trial `DEFAULT` usa os hiperparametros padrao do SB3.",
+            "",
+        ]
+    )
+    for algo in sorted(ALGORITHMS):
+        summary = summaries[algo]
+        lines.extend([f"### {algo.upper()}", ""])
+        if summary is None:
+            lines.extend(["Sem dados.", ""])
+            continue
+        lines.extend([*_trial_table(summary), ""])
+
+    lines.extend(
+        [
             "## Arquivos gerados",
             "",
-            f"- Bancos SQLite e CSVs de trials: `{_project_relative_path(log_dir)}`.",
+            f"- Bancos SQLite, CSVs de trials e retornos intermediarios: `{_project_relative_path(log_dir)}`.",
             f"- Graficos de historico e importancia: `{_project_relative_path(figure_dir)}`.",
-            "- JSONs `*_best_params.json`: configuracoes escolhidas para a Etapa 6.",
+            "- JSONs `*_best_params.json`: configuracoes candidatas para a Etapa 6.",
             "",
-            "## Proximos passos",
+            "## Limitacoes",
             "",
-            "Antes do treino final da Etapa 6, recomenda-se comparar as configuracoes "
-            "vencedoras em varias sementes, usando o mesmo orcamento de treino e avaliacao.",
-            "",
-            "1. Treinar novamente as configuracoes selecionadas de A2C, PPO e DQN.",
-            "2. Usar varias sementes para reduzir o efeito do acaso nos resultados.",
-            "3. Comparar retorno, sucesso, perda do animal e consumo de bateria.",
-            "4. Selecionar o modelo final com base nessa avaliacao controlada.",
-            "",
-            "## Conclusao",
-            "",
-            "A Etapa 5 foi concluida. A busca e reproduzivel, os trials sao auditaveis e "
-            "as melhores configuracoes estao salvas para a Etapa 6. A2C e PPO apresentaram "
-            "os melhores resultados acumulados. A escolha final deve ser confirmada em "
-            "uma comparacao controlada, com o mesmo orcamento e multiplas sementes.",
+            "- Cada trial usa uma unica seed de treino: o retorno de um trial e uma "
+            "estimativa ruidosa. A Etapa 6 reavalia as configuracoes com varias seeds.",
+            "- O orcamento por trial e menor que o do treino final.",
             "",
         ]
     )
@@ -834,7 +1007,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Tune FloodGuard SB3 hyperparameters with Optuna (Stage 5)."
     )
     parser.add_argument("--algo", choices=sorted(ALGORITHMS), required=True)
-    parser.add_argument("--n-trials", type=int, default=20)
+    parser.add_argument("--n-trials", type=int, default=30)
     parser.add_argument("--timeout", type=int, default=None, help="Optional Optuna timeout in seconds.")
     parser.add_argument(
         "--total-timesteps",
@@ -845,24 +1018,48 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--eval-episodes",
         type=int,
-        default=30,
+        default=50,
         help="Final evaluation episodes per trial.",
     )
     parser.add_argument(
         "--pruning-eval-episodes",
         type=int,
-        default=10,
+        default=20,
         help="Episodes used for intermediate pruning evaluations.",
     )
     parser.add_argument(
         "--eval-freq",
         type=int,
-        default=20_000,
-        help="Timesteps between pruning evaluations. Use 0 to disable.",
+        default=10_000,
+        help="Timesteps between (pruning/score) evaluations. Use 0 to disable.",
     )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--eval-seed-offset", type=int, default=20_000)
     parser.add_argument("--n-startup-trials", type=int, default=5)
+    parser.add_argument(
+        "--sampler-seed",
+        type=int,
+        default=None,
+        help="TPE sampler seed (default: --seed). Use a different value per process "
+        "when several processes share the same study.",
+    )
+    parser.add_argument(
+        "--pruner-warmup-evals",
+        type=int,
+        default=2,
+        help="Number of pruning evaluations before the MedianPruner may prune.",
+    )
+    parser.add_argument(
+        "--no-enqueue-default",
+        dest="enqueue_default",
+        action="store_false",
+        help="Do not run the SB3 default hyperparameters as trial 0.",
+    )
+    parser.add_argument(
+        "--stochastic-eval",
+        action="store_true",
+        help="Evaluate with a sampled/epsilon-greedy policy (default: deterministic).",
+    )
     parser.add_argument("--log-dir", type=Path, default=DEFAULT_LOG_ROOT)
     parser.add_argument("--figure-dir", type=Path, default=DEFAULT_FIGURE_ROOT)
     parser.add_argument("--report-path", type=Path, default=DEFAULT_REPORT_PATH)
@@ -876,6 +1073,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    # Redes MLP minusculas: varias threads de torch so causam contencao.
+    torch.set_num_threads(1)
     args = build_parser().parse_args()
     result = optimize_hyperparams(args)
     study: optuna.Study = result["study"]

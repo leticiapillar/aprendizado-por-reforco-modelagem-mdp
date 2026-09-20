@@ -4,44 +4,656 @@
     "metrics": {
       "animal_lost_rate": 0.0,
       "battery_depleted_rate": 0.0,
-      "battery_spent_mean": 15.566666666666666,
+      "battery_spent_mean": 15.0,
       "effective_barriers_installed_mean": 0.0,
       "pickup_rate": 1.0,
-      "return_mean": 2.4,
-      "return_std": 2.222145592548508,
-      "steps_mean": 17.6,
-      "steps_to_success_mean": 17.6,
+      "return_mean": 5.0,
+      "return_std": 0.0,
+      "steps_mean": 15.0,
+      "steps_to_success_mean": 15.0,
       "success_rate": 1.0,
       "truncated_rate": 0.0
     },
-    "number": 17,
+    "number": 18,
     "params": {
       "batch_size": 32,
-      "clip_range": 0.14921666079316898,
-      "ent_coef": 0.0005934336586826317,
-      "gae_lambda": 0.9991559382767661,
-      "gamma": 0.9538733506135718,
-      "learning_rate": 4.5669908886192354e-05,
+      "clip_range": 0.18171131570800997,
+      "ent_coef": 4.6015958041549033e-07,
+      "gae_lambda": 0.8942422901567346,
+      "gamma": 0.9162305887000054,
+      "learning_rate": 0.000259625426498583,
       "n_epochs": 20,
-      "n_steps": 64,
-      "vf_coef": 0.478817524927699
+      "n_steps": 512,
+      "vf_coef": 0.3894594129264609
     },
-    "value": 2.4
+    "value": 4.82
   },
-  "completed_trials": 12,
+  "budget": {
+    "env_kwargs": {},
+    "eval_episodes": 50,
+    "eval_freq": 10000,
+    "eval_mode": "deterministic",
+    "eval_seed_offset": 20000,
+    "pruning_eval_episodes": 20,
+    "seed": 42,
+    "total_timesteps": 100000
+  },
+  "completed_trials": 21,
+  "default_trial": {
+    "metrics": {
+      "animal_lost_rate": 0.0,
+      "battery_depleted_rate": 0.0,
+      "battery_spent_mean": 15.0,
+      "effective_barriers_installed_mean": 0.0,
+      "pickup_rate": 1.0,
+      "return_mean": 5.0,
+      "return_std": 0.0,
+      "steps_mean": 15.0,
+      "steps_to_success_mean": 15.0,
+      "success_rate": 1.0,
+      "truncated_rate": 0.0
+    },
+    "number": 0,
+    "params": {
+      "batch_size": 64,
+      "clip_range": 0.2,
+      "ent_coef": 1e-08,
+      "gae_lambda": 0.95,
+      "gamma": 0.99,
+      "learning_rate": 0.0003,
+      "n_epochs": 10,
+      "n_steps": 2048,
+      "vf_coef": 0.5
+    },
+    "state": "COMPLETE",
+    "value": -8.310000000000002
+  },
   "env_kwargs": {},
-  "eval_episodes": 30,
+  "eval_episodes": 50,
   "failed_trials": 0,
   "paths": {
     "best_config": "results/logs/optuna/ppo_best_params.json",
+    "intermediate_csv": "results/logs/optuna/ppo_intermediate.csv",
     "optimization_history": "results/figures/optuna_ppo_history.png",
     "param_importance": "results/figures/optuna_ppo_param_importance.png",
     "storage": "results/logs/optuna/optuna_ppo.db",
     "trials_csv": "results/logs/optuna/ppo_trials.csv"
   },
-  "pruned_trials": 18,
+  "pruned_trials": 9,
   "storage": "results/logs/optuna/optuna_ppo.db",
   "study_name": "floodguard_stage5_ppo",
   "total_timesteps_per_trial": 100000,
-  "total_trials": 30
+  "total_trials": 30,
+  "trials": [
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 0,
+      "params": {
+        "batch_size": 64,
+        "clip_range": 0.2,
+        "ent_coef": 1e-08,
+        "gae_lambda": 0.95,
+        "gamma": 0.99,
+        "learning_rate": 0.0003,
+        "n_epochs": 10,
+        "n_steps": 2048,
+        "vf_coef": 0.5
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -8.310000000000002
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 1,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.3701214444795635,
+        "ent_coef": 0.00016464050395767748,
+        "gae_lambda": 0.921410342558447,
+        "gamma": 0.9356960472783684,
+        "learning_rate": 0.0019271573268431147,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.5353564535274156
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 2.0900000000000003
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 2,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.137072318667985,
+        "ent_coef": 0.00032841348403260854,
+        "gae_lambda": 0.8490304074221988,
+        "gamma": 0.9627571038888972,
+        "learning_rate": 2.3721463351427548e-05,
+        "n_epochs": 3,
+        "n_steps": 1024,
+        "vf_coef": 0.8011678773511814
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.78,
+      "value": -94.51
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 3,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.2574269294896714,
+        "ent_coef": 7.82684482178565e-06,
+        "gae_lambda": 0.8608484485919076,
+        "gamma": 0.9183221105343581,
+        "learning_rate": 1.3927723945289003e-05,
+        "n_epochs": 3,
+        "n_steps": 128,
+        "vf_coef": 0.4684218551485314
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.0,
+      "value": -68.705
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 4,
+      "params": {
+        "batch_size": 64,
+        "clip_range": 0.2622584600523671,
+        "ent_coef": 0.0009676423414661369,
+        "gae_lambda": 0.9139682522156224,
+        "gamma": 0.951015016782523,
+        "learning_rate": 6.926234293778165e-05,
+        "n_epochs": 3,
+        "n_steps": 256,
+        "vf_coef": 0.5057654046947844
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.0,
+      "value": -90.74
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 5,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.2193176600125517,
+        "ent_coef": 7.111911819427289e-05,
+        "gae_lambda": 0.9981523913778994,
+        "gamma": 0.927539570301002,
+        "learning_rate": 0.0008027511349356481,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.5919275409423189
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.98,
+      "value": 0.5
+    },
+    {
+      "final": true,
+      "last_step": 50000,
+      "number": 6,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.12930163420191518,
+        "ent_coef": 0.0003834038950168496,
+        "gae_lambda": 0.8609227538346742,
+        "gamma": 0.9807588950768344,
+        "learning_rate": 3.12331775337643e-05,
+        "n_epochs": 20,
+        "n_steps": 2048,
+        "vf_coef": 0.5801143703047009
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -100.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 7,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.3995293582904289,
+        "ent_coef": 0.03072674884494995,
+        "gae_lambda": 0.9957977355765498,
+        "gamma": 0.900019721485528,
+        "learning_rate": 0.0026456866638829677,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.9771597354314091
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -11.245
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 8,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.3811211300257405,
+        "ent_coef": 0.030412039267397623,
+        "gae_lambda": 0.800835906567613,
+        "gamma": 0.9017865332968383,
+        "learning_rate": 0.0027911717025308016,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.2670886563886488
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -5.88
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 9,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.3881751522950521,
+        "ent_coef": 0.026861689504690783,
+        "gae_lambda": 0.8077450399922366,
+        "gamma": 0.9024957230572418,
+        "learning_rate": 0.0017168627896229087,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.29499500696878245
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.94,
+      "value": -0.265
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 10,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.38284033497079517,
+        "ent_coef": 1.271997053543234e-07,
+        "gae_lambda": 0.8030401225294397,
+        "gamma": 0.9423118401312547,
+        "learning_rate": 0.00017049526073902583,
+        "n_epochs": 5,
+        "n_steps": 512,
+        "vf_coef": 0.2528577729418234
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -100.0
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 11,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.31468039078229937,
+        "ent_coef": 2.26231381146135e-06,
+        "gae_lambda": 0.9159441772033462,
+        "gamma": 0.9705163609637613,
+        "learning_rate": 0.0017957301075751599,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.3035024837257492
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -1.7549999999999997
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 12,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.3155571862725182,
+        "ent_coef": 2.078633070498129e-06,
+        "gae_lambda": 0.9165509326035491,
+        "gamma": 0.9702768175211209,
+        "learning_rate": 0.0005084081720014555,
+        "n_epochs": 5,
+        "n_steps": 128,
+        "vf_coef": 0.7883740358305436
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -6.7
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 13,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.31015748666021126,
+        "ent_coef": 7.264613675420984e-06,
+        "gae_lambda": 0.9974644638021637,
+        "gamma": 0.9291946227036485,
+        "learning_rate": 0.0006940337280832974,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.671941777960594
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -31.75
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 14,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.3213142492546814,
+        "ent_coef": 1.7644501402929656e-05,
+        "gae_lambda": 0.9441741799712067,
+        "gamma": 0.9272559243778085,
+        "learning_rate": 0.0007716579678608069,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.6914636589951388
+      },
+      "state": "COMPLETE",
+      "success_rate": 0.88,
+      "value": -8.435
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 15,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.19205535606184537,
+        "ent_coef": 7.157544642520338e-05,
+        "gae_lambda": 0.9581055836958786,
+        "gamma": 0.9290975137645896,
+        "learning_rate": 0.0010068696480793166,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.6778288149975407
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -8.35
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 16,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.32710692656938317,
+        "ent_coef": 0.0018557153832895023,
+        "gae_lambda": 0.9579843226247671,
+        "gamma": 0.9430774757325634,
+        "learning_rate": 0.0011812151489238158,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.4276435467873856
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -0.85
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 17,
+      "params": {
+        "batch_size": 128,
+        "clip_range": 0.19917390039559782,
+        "ent_coef": 0.002650604251255614,
+        "gae_lambda": 0.8993793326157814,
+        "gamma": 0.9446330290167646,
+        "learning_rate": 0.00018784192604910953,
+        "n_epochs": 20,
+        "n_steps": 256,
+        "vf_coef": 0.3809179907662039
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": -5.614999999999999
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 18,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.18171131570800997,
+        "ent_coef": 4.6015958041549033e-07,
+        "gae_lambda": 0.8942422901567346,
+        "gamma": 0.9162305887000054,
+        "learning_rate": 0.000259625426498583,
+        "n_epochs": 20,
+        "n_steps": 512,
+        "vf_coef": 0.3894594129264609
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.82
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 19,
+      "params": {
+        "batch_size": 64,
+        "clip_range": 0.2497388425521982,
+        "ent_coef": 9.356548118259548e-07,
+        "gae_lambda": 0.9780958313128073,
+        "gamma": 0.9162400185337094,
+        "learning_rate": 0.0002982262599648552,
+        "n_epochs": 5,
+        "n_steps": 512,
+        "vf_coef": 0.5892447346582063
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -75.95
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 20,
+      "params": {
+        "batch_size": 64,
+        "clip_range": 0.2626508962839443,
+        "ent_coef": 8.109086995940911e-05,
+        "gae_lambda": 0.9777045952276713,
+        "gamma": 0.9175358154930014,
+        "learning_rate": 0.00032480927940635446,
+        "n_epochs": 5,
+        "n_steps": 512,
+        "vf_coef": 0.5725525870452257
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -43.4
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 21,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.3474252554582819,
+        "ent_coef": 0.0001206185689261769,
+        "gae_lambda": 0.8867624573705144,
+        "gamma": 0.9575981073384667,
+        "learning_rate": 0.00043579783097089667,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.5738027394975062
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -7.85
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 22,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.16432261313199245,
+        "ent_coef": 6.2537874816285e-05,
+        "gae_lambda": 0.8877264036309775,
+        "gamma": 0.9548400164085858,
+        "learning_rate": 8.2906506185338e-05,
+        "n_epochs": 10,
+        "n_steps": 64,
+        "vf_coef": 0.7790150487547541
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": -94.2
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 23,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.1005098947656604,
+        "ent_coef": 0.006069646405441888,
+        "gae_lambda": 0.8256300473544257,
+        "gamma": 0.910122897301044,
+        "learning_rate": 0.0014795052393487419,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.3567636375004557
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 0.24500000000000027
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 24,
+      "params": {
+        "batch_size": 256,
+        "clip_range": 0.359813432489807,
+        "ent_coef": 0.009182917669319066,
+        "gae_lambda": 0.8275281668544028,
+        "gamma": 0.9082169207696683,
+        "learning_rate": 0.0015536425353078322,
+        "n_epochs": 20,
+        "n_steps": 1024,
+        "vf_coef": 0.35468127883594175
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 3.6199999999999997
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 25,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.23616890228671478,
+        "ent_coef": 1.3460510090306693e-07,
+        "gae_lambda": 0.9333989690456331,
+        "gamma": 0.9350096155465176,
+        "learning_rate": 0.0001127060465968944,
+        "n_epochs": 20,
+        "n_steps": 512,
+        "vf_coef": 0.44465978205078954
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 3.4200000000000004
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 26,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.3631674752760932,
+        "ent_coef": 1.2673250096316684e-07,
+        "gae_lambda": 0.93310650856842,
+        "gamma": 0.9350834233961343,
+        "learning_rate": 0.00011575767805787658,
+        "n_epochs": 20,
+        "n_steps": 512,
+        "vf_coef": 0.37475595601263106
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 2.2649999999999997
+    },
+    {
+      "final": true,
+      "last_step": 20000,
+      "number": 27,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.28468044881919996,
+        "ent_coef": 6.83243069669355e-08,
+        "gae_lambda": 0.8324635387144264,
+        "gamma": 0.9128984143803045,
+        "learning_rate": 7.680077856617443e-05,
+        "n_epochs": 20,
+        "n_steps": 512,
+        "vf_coef": 0.38772551003263145
+      },
+      "state": "PRUNED",
+      "success_rate": null,
+      "value": 3.95
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 28,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.16640919055317066,
+        "ent_coef": 1.079893541357538e-07,
+        "gae_lambda": 0.9357042252605602,
+        "gamma": 0.9081071941124723,
+        "learning_rate": 0.00013012343210052894,
+        "n_epochs": 20,
+        "n_steps": 512,
+        "vf_coef": 0.4461934370087169
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 4.82
+    },
+    {
+      "final": true,
+      "last_step": 100000,
+      "number": 29,
+      "params": {
+        "batch_size": 32,
+        "clip_range": 0.2299194120692658,
+        "ent_coef": 1.6504463962269082e-08,
+        "gae_lambda": 0.8884186744935011,
+        "gamma": 0.9230722782134503,
+        "learning_rate": 5.630198897723723e-05,
+        "n_epochs": 20,
+        "n_steps": 512,
+        "vf_coef": 0.42989326930491545
+      },
+      "state": "COMPLETE",
+      "success_rate": 1.0,
+      "value": 3.215
+    }
+  ]
 }

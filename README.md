@@ -148,7 +148,9 @@ No resumo agregado do baseline, esses campos viram métricas como
 ## Etapa 4 - Treino com Stable-Baselines3
 
 A Etapa 4 treina e avalia DQN, PPO e A2C com 500.000 timesteps, seed 42 e
-hiperparâmetros padrão do Stable-Baselines3.
+hiperparâmetros padrão do Stable-Baselines3. A avaliação é **determinística**
+(ação de maior valor/probabilidade); use `--stochastic-eval` para o modo
+estocástico.
 
 ```bash
 source .venv/bin/activate
@@ -157,47 +159,84 @@ python experiments/train.py --algo ppo
 python experiments/train.py --algo a2c
 ```
 
-Os três algoritmos superaram o agente aleatório e a etapa foi validada. A
-metodologia, os resultados e os links para os artefatos estão no
+Os resultados e os links para os artefatos estão no
 [relatório consolidado da Etapa 4](results/relatorio_etapa_4.md).
+
+### Política de avaliação: determinística
+
+Todos os resultados usam a política **determinística**: é a política que o
+algoritmo aprendeu e a única comparável entre os três. No SB3, o modo
+"estocástico" do PPO/A2C amostra da distribuição de ações, mas no DQN é
+ε-greedy com o ε final do treino — não é uma política aprendida. A avaliação
+estocástica é reportada apenas como análise secundária (Etapa 6).
+
+Toda avaliação também mede travamentos (`stall_step_rate`,
+`stalled_episode_rate`): passos consecutivos sem nenhum efeito no robô.
+
+### Observação normalizada (correção importante)
+
+O `Box` achatado da observação é inteiro (`int64`) e o `RescaleObservation` do
+Gymnasium mantém esse dtype, truncando posição, bateria e passos restantes para
+0/1. Uma versão anterior do pipeline treinava e avaliava com essa observação
+degenerada. `NormalizeObservation` (em `experiments/train.py`) converte para
+`float32` antes de normalizar; há teste de regressão em `tests/test_train.py`.
+Todos os resultados do repositório foram regerados após a correção.
 
 ## Etapa 5 - Otimizacao com Optuna
 
-A Etapa 5 busca hiperparametros melhores para DQN, PPO e A2C. Cada execucao
-salva o banco SQLite do Optuna, um CSV com todos os trials, o JSON com a melhor
-configuracao, graficos em `results/figures/` e atualiza o
-[relatorio consolidado da Etapa 5](results/relatorio_etapa_5.md).
+A Etapa 5 busca hiperparâmetros melhores para DQN, PPO e A2C. Cada execução
+salva o banco SQLite do Optuna (versionado), um CSV com todos os trials, os
+retornos intermediários, o JSON com a melhor configuração, gráficos em
+`results/figures/` e atualiza o
+[relatório consolidado da Etapa 5](results/relatorio_etapa_5.md).
 
-Busca completa sugerida:
+Protocolo:
+
+- todos os trials têm o **mesmo orçamento** (100.000 passos), a **mesma seed de
+  treino** e os **mesmos episódios de avaliação**; o banco guarda o orçamento e
+  recusa trials de outro protocolo;
+- o trial 0 são os **hiperparâmetros default do SB3**, para medir o ganho real
+  da otimização;
+- avaliação determinística; objetivo = retorno médio das avaliações ao longo do
+  treino parcial (área sob a curva), que desempata configurações que chegam ao
+  ótimo por velocidade de convergência;
+- `MedianPruner` só atua após um período de aquecimento.
+
+Busca completa (30 trials por algoritmo; várias execuções podem compartilhar o
+mesmo banco para paralelizar, ex.: 3 processos com `--n-trials 10`):
 
 ```bash
 source .venv/bin/activate
-python experiments/tune.py --algo dqn --n-trials 20 --total-timesteps 100000 --eval-episodes 30
-python experiments/tune.py --algo ppo --n-trials 20 --total-timesteps 100000 --eval-episodes 30
-python experiments/tune.py --algo a2c --n-trials 20 --total-timesteps 100000 --eval-episodes 30
+export OMP_NUM_THREADS=1   # redes minúsculas: mais threads só geram contenção
+python experiments/tune.py --algo dqn --n-trials 30 --total-timesteps 100000
+python experiments/tune.py --algo ppo --n-trials 30 --total-timesteps 100000
+python experiments/tune.py --algo a2c --n-trials 30 --total-timesteps 100000
 ```
 
-Smoke test rapido:
+Smoke test rápido:
 
 ```bash
-source .venv/bin/activate
 python experiments/tune.py --algo a2c --n-trials 1 --total-timesteps 32 --eval-episodes 1 --eval-freq 0
 ```
 
 ## Etapa 6 - Experimentos finais
 
-A Etapa 6 treina cada algoritmo com a melhor configuracao encontrada na
-Etapa 5. O experimento usa tres sementes de treino, 500.000 passos por modelo
-e 100 episodios de teste com a politica estocastica usada na otimizacao.
+A Etapa 6 treina, com 5 seeds e 500.000 passos, a configuração otimizada e a
+default do SB3 de cada algoritmo, avalia todos em 100 episódios de teste
+(determinístico como principal, estocástico como secundário), compara com o
+agente aleatório e, opcionalmente, treina ablações do PPO (sem barreiras e sem
+reward shaping) para investigar o comportamento de proteção.
 
 ```bash
 source .venv/bin/activate
-python experiments/final_experiments.py --stochastic-eval
+export OMP_NUM_THREADS=1
+python experiments/final_experiments.py --workers 8 --ablations
 ```
 
-O script salva os nove modelos finais, os resultados por seed e por episodio,
-as curvas de aprendizado, os graficos comparativos e o
-[relatorio consolidado da Etapa 6](results/relatorio_etapa_6.md).
+O script salva os modelos (`results/models/final/`, versionados), resultados por
+seed e por episódio, curvas de treino e de avaliação periódica
+(`results/final/*.csv`), gráficos, GIFs de um episódio por algoritmo e o
+[relatório consolidado da Etapa 6](results/relatorio_etapa_6.md).
 
 ## Reprodutibilidade
 

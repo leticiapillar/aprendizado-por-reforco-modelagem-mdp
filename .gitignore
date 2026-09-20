@@ -12,12 +12,20 @@ results/models/*
 results/logs/*
 !results/logs/.gitkeep
 
+# ... exceto o que e necessario para auditar/reproduzir os resultados do relatorio:
+# bancos e CSVs do Optuna (Etapa 5) e os modelos finais (Etapa 6, arquivos pequenos).
+!results/logs/optuna/
+results/logs/optuna/*/
+!results/models/final/
+results/models/final/**/tensorboard/
+
 # Jupyter
 .ipynb_checkpoints/
 
-# Optuna / SQLite locais
+# SQLite locais (os bancos do Optuna em results/logs/optuna/ sao versionados)
 *.db
 *.db-journal
+!results/logs/optuna/*.db
 
 # SO / editor
 .DS_Store

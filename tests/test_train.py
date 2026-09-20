@@ -1,6 +1,7 @@
 """Smoke tests for the Stage 4 stable-baselines3 integration."""
 
 import gymnasium as gym
+import numpy as np
 
 from experiments.train import ALGORITHMS, build_model, evaluate_model, make_training_env
 
@@ -29,6 +30,32 @@ def test_make_training_env_flattens_dict_observation():
         assert env.observation_space.low.min() == 0.0
         assert env.observation_space.high.max() == 1.0
         assert info["termination_reason"] == "running"
+    finally:
+        env.close()
+
+
+def test_observation_is_float_and_keeps_position_information():
+    env = make_training_env(seed=1, env_kwargs={"flood_advance_prob": 0.0, "flood_deepen_prob": 0.0})
+    try:
+        first, _ = env.reset(seed=1)
+        second, *_ = env.step(0)  # UP: muda a posicao e a bateria
+
+        assert env.observation_space.dtype == np.float32
+        assert first.dtype == np.float32
+        assert env.observation_space.contains(first)
+        # Regressao: o RescaleObservation truncava a observacao para inteiros.
+        fractional = first[(first > 0) & (first < 1)]
+        assert fractional.size > 0
+        assert np.count_nonzero(second - first) >= 2
+    finally:
+        env.close()
+
+
+def test_normalize_observation_handles_zero_span_axes():
+    env = make_training_env(seed=1, env_kwargs={"initial_barrier_kits": 0})
+    try:
+        obs, _ = env.reset(seed=1)
+        assert np.isfinite(obs).all()
     finally:
         env.close()
 
