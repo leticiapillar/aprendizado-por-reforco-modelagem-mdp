@@ -238,6 +238,18 @@ seed e por episódio, curvas de treino e de avaliação periódica
 (`results/final/*.csv`), gráficos, GIFs de um episódio por algoritmo e o
 [relatório consolidado da Etapa 6](results/relatorio_etapa_6.md).
 
+## Etapa 7 - Relatório (notebook)
+
+O relatório final está em [`notebooks/relatorio.ipynb`](notebooks/relatorio.ipynb) (versão
+exportada: [`notebooks/relatorio.html`](notebooks/relatorio.html)). Ele lê todos os dados de `results/`,
+então basta reexecutá-lo depois de qualquer novo experimento:
+
+```bash
+source .venv/bin/activate
+jupyter nbconvert --to notebook --execute --inplace notebooks/relatorio.ipynb
+jupyter nbconvert --to html notebooks/relatorio.ipynb
+```
+
 ## Reprodutibilidade
 
 Use `floodguard.utils.set_global_seed(seed)` no início de qualquer script de
